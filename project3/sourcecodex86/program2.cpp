@@ -4,7 +4,7 @@
 #include <ntstatus.h>
 typedef HMODULE(WINAPI* fGetModuleHandleW)(LPCWSTR);
 typedef NTSTATUS(WINAPI* fnNtUnmapViewOfSection)(HANDLE ProcessHandle, PVOID BaseAddress);
-//看别人blog写的，用来提升权限。
+//看别人blog写的，用来提升Debug权限。有没有也没关系，不影响。
 BOOL EnableDebugPrivilege()
 {
 	HANDLE hToken;
@@ -64,7 +64,7 @@ int main() {
 	SIZE_T exe1_imageBase = pNt->OptionalHeader.ImageBase;
 	SIZE_T exe1_imageOEP = pNt->OptionalHeader.AddressOfEntryPoint;
 	SIZE_T cntSec = pNt->FileHeader.NumberOfSections;
-	//拉伸program1.exe到内存中,textStart and textSize无问题
+	//拉伸program1.exe到内存中
 	peFile1 = (LPVOID)malloc(textSize);
 	memset(peFile1, 0, textSize);
 	memcpy(peFile1, (void*)textStart, textSize);
@@ -133,6 +133,7 @@ int main() {
 			return 1;
 		}
 	}
+	//未测试重定位，因为还不知道怎么发布所以还没在别的电脑上测试重定位是否正确
 	else {
 		//随机给exe1在当前进程中分配地址，返回值为exe1被分配空间的基地址
 		LPVOID imbase = VirtualAllocEx(pi.hProcess, NULL, sizeOfimage_exe1, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
