@@ -9,8 +9,8 @@
  1. I develop program1.cpp,the function of it is to print "hello program1".
  2. I develop program3.cpp,the function of it is to add a secion `.shell` at the last of program2.exe.The data of section `.shell` is the encrypted program1.exe.
  3. I develop program2.cpp,the function as follows:
-   - print "hello program2",I think it is a symbol,giving the user a signal that the program2.exe runs correctly.
-   - read and decrypt the last section of program2.exe to get program1.exe.`GetModuleHandle`
+   -- print "hello program2",I think it is a symbol,giving the user a signal that the program2.exe runs correctly.
+   -- read and decrypt the last section of program2.exe to get program1.exe.`GetModuleHandle`
    - parse the program1.exe for its OEP and ImageBase.
    - stretch the program1.exe and load it in the buffer.
    - use API `CreateProcess` to create a suspended process.
