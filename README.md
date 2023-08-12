@@ -19,6 +19,6 @@
     * use API `VirtualAllocEx`to allocate memory at the specified location which is "ImageBase" of program1.exe for program1.exe in the suspended process.Maybe need to repair the relocation table of the program1.exe
     * use API `WriteProcessMemory` to copy the program1.exe to the suspended process.
     * change the context of the program2.exe(the image of it is uninstalled).Change the base to "Imagebase" of program1.exe and change OEP to the "OEP" of program1.exe.
-    * set the context and return to the main thread.'SetThreadContext' and `ResumeThread`
+    * set the context and return to the main thread.`SetThreadContext` and `ResumeThread`
     * SUCCESS! 
    
