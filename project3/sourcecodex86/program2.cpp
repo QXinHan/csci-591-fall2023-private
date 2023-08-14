@@ -2,41 +2,41 @@
 #include<stdlib.h>
 #include<Windows.h>
 #include <ntstatus.h>
-typedef HMODULE(WINAPI* fGetModuleHandleW)(LPCWSTR);
 typedef NTSTATUS(WINAPI* fnNtUnmapViewOfSection)(HANDLE ProcessHandle, PVOID BaseAddress);
-//看别人blog写的，用来提升Debug权限。有没有也没关系，不影响。
-BOOL EnableDebugPrivilege()
-{
-	HANDLE hToken;
-	BOOL fOk = FALSE;
-	if (OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &hToken))
+// Rva to Foa
+DWORD RVATOFOA(DWORD file_buffer, DWORD Rva) {
+	PIMAGE_DOS_HEADER pdos = (PIMAGE_DOS_HEADER)file_buffer;
+	PIMAGE_NT_HEADERS pnt = (PIMAGE_NT_HEADERS)(pdos->e_lfanew + file_buffer);
+	PIMAGE_SECTION_HEADER psec = (PIMAGE_SECTION_HEADER)(pnt + 1);
+	if (Rva <= pnt->OptionalHeader.SizeOfHeaders) 
 	{
-		TOKEN_PRIVILEGES tp;
-		tp.PrivilegeCount = 1;
-		LookupPrivilegeValue(NULL, SE_DEBUG_NAME, &tp.Privileges[0].Luid);
-
-		tp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
-		AdjustTokenPrivileges(hToken, FALSE, &tp, sizeof(tp), NULL, NULL);
-
-		fOk = (GetLastError() == ERROR_SUCCESS);
-		CloseHandle(hToken);
+		return Rva;
 	}
-	return fOk;
+	for (WORD i = 0; i < pnt->FileHeader.NumberOfSections; i++)
+	{
+		if (Rva >= psec[i].VirtualAddress && Rva < psec[i].VirtualAddress + psec[i].Misc.VirtualSize) 
+		{
+			
+			DWORD offset = Rva - psec[i].VirtualAddress;
+			DWORD FOA = offset + psec[i].PointerToRawData;
+			return FOA;
+		}
+	}
+	printf("failed RVA to FOA\n");
+	return -1;
 }
 int main() {
-	EnableDebugPrivilege();
-	//	HMODULE hKernel32 = LoadLibrary("kernel32.dll");
 	printf("Hello program2\n");
 	LPVOID image1;
 	char* image2;
 	LPVOID peFile1;
-	//打开program2.exe
+	// To get the program2.exe file
 	image2 = (char*)GetModuleHandle(NULL);
 	if (image2 == NULL) {
 		printf("image2 == NULL");
 		return 1;
 	}
-	//找到并且解密最后的.shell section for program1.exe
+	// Parse the program2.exe PE format and decrypt the section ".shell" to get program1.exe 
 	PIMAGE_DOS_HEADER pDos = (PIMAGE_DOS_HEADER)image2;
 	PIMAGE_NT_HEADERS pNt = (PIMAGE_NT_HEADERS)(pDos->e_lfanew + image2);
 	SIZE_T OEP_exe2 = pNt->OptionalHeader.AddressOfEntryPoint;
@@ -56,15 +56,16 @@ int main() {
 	for (BYTE* i = (BYTE*)textStart; i < (BYTE*)textStart + textSize; i++) {
 		*i ^= 0x40;
 	}
+	// Parse the program1.exe 
 	pDos = (PIMAGE_DOS_HEADER)textStart;
 	pNt = (PIMAGE_NT_HEADERS)(pDos->e_lfanew + textStart);
 	pSec = (PIMAGE_SECTION_HEADER)(pNt + 1);
 	SIZE_T imageSize_exe1 = pNt->OptionalHeader.SizeOfImage;
 	SIZE_T imageHeaderSize_exe1 = pNt->OptionalHeader.SizeOfHeaders;
-	SIZE_T exe1_imageBase = pNt->OptionalHeader.ImageBase;
-	SIZE_T exe1_imageOEP = pNt->OptionalHeader.AddressOfEntryPoint;
+	SIZE_T imageBase_exe1 = pNt->OptionalHeader.ImageBase;
+	SIZE_T imageOEP_exe1 = pNt->OptionalHeader.AddressOfEntryPoint;
 	SIZE_T cntSec = pNt->FileHeader.NumberOfSections;
-	//拉伸program1.exe到内存中
+	//Stretch the program1.exe to the memory
 	peFile1 = (LPVOID)malloc(textSize);
 	memset(peFile1, 0, textSize);
 	memcpy(peFile1, (void*)textStart, textSize);
@@ -74,7 +75,7 @@ int main() {
 	for (SIZE_T i = 0; i < cntSec; i++) {
 		memcpy((LPVOID)((SIZE_T)image1 + pSec[i].VirtualAddress), (LPVOID)((SIZE_T)peFile1 + pSec[i].PointerToRawData), pSec[i].SizeOfRawData);
 	}
-	//用createprocess创建一个program2.exe的进程
+	// Create a suspended process "program2.exe"
 	TCHAR appName[] = TEXT("program2.exe");
 	PROCESS_INFORMATION pi;
 	STARTUPINFO si;
@@ -98,12 +99,12 @@ int main() {
 		system("pause");
 		return 1;
 	}
-	// 获取新进程主线程上下文
+	// Get the context of the suspended process
 	HMODULE hNtdll = LoadLibrary(L"ntdll.dll");
 	CONTEXT context;
 	context.ContextFlags = CONTEXT_FULL;
 	GetThreadContext(pi.hThread, &context);
-	//从ntdll.dll中获取NtUnmapViewOfSection
+	//To get API "NtUnmapViewOfSection" from ntdll.dll
 	if (hNtdll == NULL) {
 		printf("Error:fail to connect ntdll.dll\n");
 		return 1;
@@ -113,73 +114,67 @@ int main() {
 		printf("Error:we can not get the function named ZwUnmapViewOfSection\n");
 		return 1;
 	}
-	//用NtUnmapViewOfSection清空这个悬挂进程的内存空间
-	//首先要获取悬挂地址的基地址和OEP
+	// Use API NtUnmapViewOfSection to uninstall the memory of main thread
 	SIZE_T susProOEP = context.Eip;
 	SIZE_T susProImageBase = context.Ebx + 8;
 	NTSTATUS status = fNtUnmapViewOfSection(pi.hProcess, (PVOID)susProImageBase);
-	pDos = (PIMAGE_DOS_HEADER)textStart;
-	pNt = (PIMAGE_NT_HEADERS)(pDos->e_lfanew + (char*)textStart);
-	SIZE_T imageBase_exe1 = pNt->OptionalHeader.ImageBase;
-	SIZE_T sizeOfimage_exe1 = pNt->OptionalHeader.SizeOfImage;
-	LPVOID realImage_exe1 = VirtualAllocEx(pi.hProcess, (LPVOID)imageBase_exe1, sizeOfimage_exe1, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
-	SIZE_T numWriten = 0;
-	//分配到了预期空间
+	// Use API "VirtualAllocEx" to allocate memory for the stretched program1.exe
+	LPVOID realImage_exe1 = VirtualAllocEx(pi.hProcess, (LPVOID)imageBase_exe1, imageSize_exe1, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+	// Get the expected memory
 	if (realImage_exe1 == (LPVOID)imageBase_exe1) {
-		bool copySuc = WriteProcessMemory(pi.hProcess, realImage_exe1, (LPCVOID)image1, imageSize_exe1, &numWriten);
+		bool copySuc = WriteProcessMemory(pi.hProcess, realImage_exe1, (LPCVOID)image1, imageSize_exe1, NULL);
 		if (copySuc == FALSE) {
 			printf("Error:it can not be write in there\nI do not know how to solve it\n");
 			FreeLibrary(hNtdll);
 			return 1;
 		}
 	}
-	//未测试重定位，因为还不知道怎么发布所以还没在别的电脑上测试重定位是否正确
+	// Not get the expected memory
 	else {
-		//随机给exe1在当前进程中分配地址，返回值为exe1被分配空间的基地址
-		LPVOID imbase = VirtualAllocEx(pi.hProcess, NULL, sizeOfimage_exe1, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
-		realImage_exe1 = imbase;
-		if (imbase == NULL) {
-			printf("Error: imBase is NULL\n");
-			return 1;
+		printf("Now I will repair this relocation!\n");//for text
+		if (realImage_exe1 == NULL) 
+		{
+			realImage_exe1 = VirtualAllocEx(pi.hProcess, NULL, imageSize_exe1, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
 		}
-		bool copySuc = WriteProcessMemory(pi.hProcess, imbase, (LPCVOID)image1, imageSize_exe1, &numWriten);
-		
-		if (!copySuc) {
-			printf("Error:i do not know how to solve it!");
-			return 1;
-		}
-		//已经给exe1分配了新的内存地址，现在该修复重定位表
-		pDos = (PIMAGE_DOS_HEADER)imbase;
-		pNt = (PIMAGE_NT_HEADERS)(pDos->e_lfanew + (char*)imbase);
-		BYTE* relAddr = (BYTE*)pNt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC].VirtualAddress + (SIZE_T)imbase;
-		SIZE_T relSize = pNt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC].Size;
-		while (relSize) {
+		// Repair the relocation table
+		pDos = (PIMAGE_DOS_HEADER)peFile1;
+		pNt = (PIMAGE_NT_HEADERS)(pDos->e_lfanew + (SIZE_T)peFile1);
+		BYTE* relAddr = (BYTE*)(RVATOFOA((SIZE_T)peFile1,pNt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC].VirtualAddress) + (SIZE_T)peFile1);
+		DWORD relSize = pNt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC].Size;
+		while (relSize) 
+		{
 			PIMAGE_BASE_RELOCATION pBaserel = (PIMAGE_BASE_RELOCATION)relAddr;
-			SIZE_T sizeOfBlock = pBaserel->SizeOfBlock;
-			SIZE_T numOfblock = (sizeOfBlock - 8) / 2;
+			DWORD sizeOfBlock = pBaserel->SizeOfBlock;
+			DWORD numOfblock = (sizeOfBlock - 8) / 2;
 			PUSHORT data = (PUSHORT)pBaserel;
-			for (SIZE_T i = 4; i < numOfblock + 4; i++) {
-				SIZE_T d = (data[i] & 0xfff) + pBaserel->VirtualAddress + (SIZE_T)imbase;
-				//重定位表中存的是需要重定位的数据的位置，和修复方式
-				SIZE_T da = *(SIZE_T*)d - (SIZE_T)imbase + exe1_imageBase;//在内存中的绝对地址
-				if (data[i] & 0x1000) {
-					((PUSHORT)d)[1] = (da & 0xffff0000) >> 16;
-				}
-				if (data[i] & 0x2000) {
-					((PUSHORT)d)[0] = da & 0xffff;
+			for (SIZE_T i = 4; i < numOfblock + 4; i++) 
+			{
+				SIZE_T d = RVATOFOA((DWORD)peFile1, pBaserel ->VirtualAddress+(data[i] & 0x0fff))+ (SIZE_T)peFile1;
+				SIZE_T Va = *(SIZE_T*)d + (SIZE_T)realImage_exe1 - imageBase_exe1;
+				if ((data[i] & 0xf000)==0x3000) {
+					*(SIZE_T*)d = Va;
 				}
 			}
 			relSize -= sizeOfBlock;
 			relAddr += sizeOfBlock;
 		}
+		// Recopy the repaired program1.exe to the buffer "image1"
+		memset(image1, 0, imageSize_exe1);
+		memcpy(image1, (void*)peFile1, imageHeaderSize_exe1);
+		for (SIZE_T i = 0; i < cntSec; i++) {
+			memcpy((LPVOID)((SIZE_T)image1 + pSec[i].VirtualAddress), (LPVOID)((SIZE_T)peFile1 + pSec[i].PointerToRawData), pSec[i].SizeOfRawData);
+		}
+		bool copySuc = WriteProcessMemory(pi.hProcess, realImage_exe1, (LPCVOID)image1, imageSize_exe1, NULL);
+		if (!copySuc) {
+			printf("Error:i do not know how to solve it!");
+			return 1;
+		}
 	}
-	//设置上下文
-	context.Eip = exe1_imageOEP + (SIZE_T)realImage_exe1;
-	SIZE_T write = 0;
-	WriteProcessMemory(pi.hProcess, (LPVOID)(context.Ebx + 8), &realImage_exe1, 4, &write);
+	// Set the context and back to main thread
+	context.Eip = imageOEP_exe1 + (SIZE_T)realImage_exe1;
+	WriteProcessMemory(pi.hProcess, (LPVOID)(context.Ebx + 8), &realImage_exe1, 4, NULL);
 	context.ContextFlags = CONTEXT_FULL;
 	SetThreadContext(pi.hThread, &context);
-	//唤醒挂起的进程回归主线程。
 	ResumeThread(pi.hThread);
 	free(image1);
 	free(peFile1);
