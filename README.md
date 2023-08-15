@@ -1,7 +1,10 @@
-# myproject
+# Project3
 - **Name:** Zhuoyun Qian
 - **Email:** 3290862073@qq.com
-- **GitCreateTime:** 8/12/2023
+- **Due:** 8/12/2023
+
+**Link to assignment:**[https://fangtian-zhong.github.io/project3.html](https://fangtian-zhong.github.io/project3.html)
+
 ## project 1
 - **Target:** finsh the project3 and upload the source code it to github.
 - **Link:** [Project3](https://fangtian-zhong.github.io/project3.html)
