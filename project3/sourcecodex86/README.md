@@ -4,7 +4,7 @@
 - **Email :** 3290862073@qq.com
 - **Due :** 8/12/2023
 
-**Link to assignment : **[https://fangtian-zhong.github.io/project3.html](https://fangtian-zhong.github.io/project3.html)
+**Link to assignment :**[https://fangtian-zhong.github.io/project3.html](https://fangtian-zhong.github.io/project3.html)
 
 ## Task 1 : get `program1.exe` 
 
