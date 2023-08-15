@@ -48,7 +48,6 @@ DWORD repairRelocationTable(PVOID peFile_exe1,DWORD ImageOffset) {
 		}
 		pBaserel = (PIMAGE_BASE_RELOCATION)(pBaserel->SizeOfBlock + (DWORD)pBaserel);
 	}
-
 	return 0;
 }
 int main() {
