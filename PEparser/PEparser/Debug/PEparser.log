@@ -1,9 +1,0 @@
-﻿  main.cpp
-D:\Cprogram\CheckMe\main.cpp(19,8): warning C4101: “Exfilebuffer”: 未引用的局部变量
-D:\Cprogram\CheckMe\main.cpp(66,9): warning C4477: “printf”: 格式字符串“%x”需要类型“unsigned int”的参数，但可变参数 1 拥有了类型“char *”
-D:\Cprogram\CheckMe\main.cpp(213,9): warning C4477: “printf”: 格式字符串“%s”需要类型“char *”的参数，但可变参数 1 拥有了类型“DWORD”
-D:\Cprogram\CheckMe\main.cpp(261,20): warning C4018: “<”: 有符号/无符号不匹配
-D:\Cprogram\CheckMe\main.cpp(286,20): warning C4018: “<”: 有符号/无符号不匹配
-D:\Cprogram\CheckMe\main.cpp(350,20): warning C4018: “<”: 有符号/无符号不匹配
-D:\Cprogram\CheckMe\main.cpp(392,20): warning C4018: “<”: 有符号/无符号不匹配
-  PEparser.vcxproj -> D:\Cprogram\PEparser\Debug\PEparser.exe
