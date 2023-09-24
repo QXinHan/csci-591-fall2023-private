@@ -1,4 +1,4 @@
-# Project2: Tables
+# Project2: PE Headers
 
 - **Name:** Zhuoyun Qian (QXinHan)
 - **Class:** CSCI 591/594
