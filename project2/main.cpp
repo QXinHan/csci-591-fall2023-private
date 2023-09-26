@@ -1,32 +1,27 @@
 /*
- * The next function contains is defined in function.h.
+ *  the next function contains is defined in function.h.
  *  the coding environment is x64 so I use DWORD64.
  *  because there is no bound import table in the two applications you provided,
  *  I have not test the 'parseBoundImportTable' function.
- *
- *
- *
+ *  some of the functions' parameter is char* and some is FILE*, there is no difference between them
 */
 
 #include<stdio.h>
 #include<stdlib.h>
-#include <string>
-#include<vector>
 #include<iostream>
 #include<Windows.h>
 #include"function.h"
 using namespace std;
-/*test1 to test3 is used for debug*/
-const char test1[] = "C:\\Users\\QQmian\\Desktop\\AntivirusPlatinum.exe";//32-bit
+const char test1[] = "C:\\Users\\QQmian\\Desktop\\AntivirusPlatinum.exe";
 const char test2[] = "C:\\Users\\QQmian\\Desktop\\WindowsProject1.exe";//32-bit
 const char test3[] = "C:\\Users\\QQmian\\Desktop\\Stardust.EXE";//64-bit
 int main(int argc, char* argv[])
 {
-    if (argc == 1)
-    {
-        printf("The exe is null");
-        return 1;
-    }
+     if (argc == 1)
+     {
+         printf("The exe is null");
+         return 1;
+     }
     FILE* fileptr = NULL;
     char* disfileptr = NULL;
     char* imagebuffer = NULL;
@@ -44,8 +39,7 @@ int main(int argc, char* argv[])
     }
     fread_s(disfileptr, sizeOfFile, sizeOfFile, 1, fileptr);/*load in the memory*/
     printf("Usage: %s\n", argv[1]);
-    parseBoundImportTable((FILE*)disfileptr);
-    // inforPrint((FILE*)disfileptr);
+  inforPrint((FILE*)disfileptr);
     system("pause");
     fclose(fileptr);
     free(disfileptr);
@@ -56,15 +50,17 @@ int main(int argc, char* argv[])
 
 void parseDataDirectory(char* file)
 {
-    printf("---------------------------------------------\n");
-    PIMAGE_DOS_HEADER pDos = (PIMAGE_DOS_HEADER)file;
-    PIMAGE_NT_HEADERS pNt = (PIMAGE_NT_HEADERS)((DWORD64)file + pDos->e_lfanew);
-    for (int i = 0; i < IMAGE_NUMBEROF_DIRECTORY_ENTRIES; i++)
-    {
-        printf("vietualAddress:%x\n", pNt->OptionalHeader.DataDirectory[i].VirtualAddress);
-        printf("size:%x\n", pNt->OptionalHeader.DataDirectory[i].Size);
+	printf("---------------------------------------------\n");
+    printf("DataDirectory\n");
+	PIMAGE_DOS_HEADER pDos = (PIMAGE_DOS_HEADER)file;
+	PIMAGE_NT_HEADERS pNt = (PIMAGE_NT_HEADERS)((DWORD64)file + pDos->e_lfanew);
+	for (int i = 0; i < IMAGE_NUMBEROF_DIRECTORY_ENTRIES; i++)
+	{
         printf("--------\n");
-    }
+		printf("vietualAddress:%x\n", pNt->OptionalHeader.DataDirectory[i].VirtualAddress);
+		printf("size:%x\n", pNt->OptionalHeader.DataDirectory[i].Size);
+		
+	}
 }
 //parse the export
 void parseExportDirectory(char* file)
@@ -128,30 +124,35 @@ void parseRelcDirectory(char* file)
 {
     if(Jude32or64((FILE*)file))
     {
-        printf("---------------------------------------------\n");
-        printf("BaseRelocationDirectory\n");
-        PIMAGE_DOS_HEADER pDos = (PIMAGE_DOS_HEADER)file;
-        PIMAGE_NT_HEADERS pNt = (PIMAGE_NT_HEADERS)((DWORD64)file + pDos->e_lfanew);
-        DWORD64 BaseRelFoa = RVATOFOA(file, pNt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC].VirtualAddress);
-        PIMAGE_BASE_RELOCATION pBaseReloc = (PIMAGE_BASE_RELOCATION)((DWORD64)file + BaseRelFoa);
-        for (int i = 0;; i++)
-        {
-            if (pBaseReloc->VirtualAddress == 0)
-            {
-                break;
-            }
-            DWORD numOfEntries = (pBaseReloc->SizeOfBlock - 8) / 2;
-            WORD* pEntry = (WORD*)((DWORD64)pBaseReloc + 8);
-            printf("Item:%d PageRva:%x  BlockSize:%x  EntriesCount:%x \n", i + 1, pBaseReloc->VirtualAddress, pBaseReloc->SizeOfBlock, numOfEntries);
-            for (int j = 0; j < numOfEntries; j++)
-            {
-                if (!pEntry[j]) break;
-                printf("Entry:%d ", j + 1);
-                printf("Characteristic:%x ", (pEntry[j]) & 0xf000);
-                printf("OffsetFromPage:%x\n", (pEntry[j]) & 0x0fff);
-            }
-            pBaseReloc = (PIMAGE_BASE_RELOCATION)((DWORD64)pBaseReloc + pBaseReloc->SizeOfBlock);
-        }
+	printf("---------------------------------------------\n");
+	printf("BaseRelocationDirectory\n");
+	PIMAGE_DOS_HEADER pDos = (PIMAGE_DOS_HEADER)file;
+	PIMAGE_NT_HEADERS pNt = (PIMAGE_NT_HEADERS)((DWORD64)file + pDos->e_lfanew);
+	DWORD64 BaseRelFoa = RVATOFOA(file, pNt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC].VirtualAddress);
+    if (!pNt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC].VirtualAddress && !pNt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC].Size)
+    {
+        printf("There is no relocation table\n");
+        return;
+    }
+	PIMAGE_BASE_RELOCATION pBaseReloc = (PIMAGE_BASE_RELOCATION)((DWORD64)file + BaseRelFoa);
+	for (int i = 0;; i++)
+	{
+		if (pBaseReloc->VirtualAddress == 0)
+		{
+			break;
+		}
+		DWORD numOfEntries = (pBaseReloc->SizeOfBlock - 8) / 2;
+		WORD* pEntry = (WORD*)((DWORD64)pBaseReloc + 8);
+		printf("Item:%d PageRva:%x  BlockSize:%x  EntriesCount:%x \n", i + 1, pBaseReloc->VirtualAddress, pBaseReloc->SizeOfBlock, numOfEntries);
+		for (int j = 0; j < numOfEntries; j++)
+		{
+            if (!pEntry[j]) break;
+			printf("Entry:%d ", j + 1);
+			printf("Characteristic:%x ", (pEntry[j]) & 0xf000);
+			printf("OffsetFromPage:%x\n", (pEntry[j]) & 0x0fff);
+		}
+		pBaseReloc = (PIMAGE_BASE_RELOCATION)((DWORD64)pBaseReloc + pBaseReloc->SizeOfBlock);
+	    }
     }
     else
     {
@@ -161,6 +162,11 @@ void parseRelcDirectory(char* file)
         PIMAGE_NT_HEADERS32 pNt = (PIMAGE_NT_HEADERS32)((DWORD64)file + pDos->e_lfanew);
         DWORD64 BaseRelFoa = RVATOFOA32(file, pNt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC].VirtualAddress);
         PIMAGE_BASE_RELOCATION pBaseReloc = (PIMAGE_BASE_RELOCATION)((DWORD64)file + BaseRelFoa);
+        if (!pNt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC].VirtualAddress && !pNt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC].Size)
+        {
+            printf("There is no relocation table\n");
+            return;
+        }
         for (int i = 0;; i++)
         {
             if (pBaseReloc->VirtualAddress == 0)
@@ -176,7 +182,7 @@ void parseRelcDirectory(char* file)
                 printf("Entry:%d ", j + 1);
                 printf("Characteristic:%x ", (pEntry[j]) & 0xf000);
                 printf("OffsetFromPage:%x\n", (pEntry[j]) & 0x0fff);
-
+                
             }
             pBaseReloc = (PIMAGE_BASE_RELOCATION)((DWORD64)pBaseReloc + pBaseReloc->SizeOfBlock);
         }
@@ -186,7 +192,7 @@ void parseRelcDirectory(char* file)
 
 void parseImportTbale(FILE* file)
 {
-    //parse Pe format
+	//parse Pe format
     if (Jude32or64(file)) {
         printf("---------------------------------------------\n");
         printf("ImportTbale\n");
@@ -293,21 +299,21 @@ void parseImportAddrTable(FILE* file)
         DWORD numOfTables = pNt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IAT].Size / sizeof(IMAGE_THUNK_DATA64);
 
         for (DWORD i = 0; i < numOfTables; i++)
-        {
+            {
             if (!pIatTable->u1.AddressOfData) continue;
-            if (pIatTable->u1.AddressOfData & IMAGE_ORDINAL_FLAG64)
-            {
-                printf("Ordinal:%x\n", (pIatTable->u1.Ordinal) & 0x7fffffffffffffff);
+                if (pIatTable->u1.AddressOfData & IMAGE_ORDINAL_FLAG64)
+                {
+                    printf("Ordinal:%x\n", (pIatTable->u1.Ordinal) & 0x7fffffffffffffff);
+                }
+                else
+                {
+                    Foa = RVATOFOA(file, pIatTable->u1.AddressOfData);
+                    PIMAGE_IMPORT_BY_NAME pImpourByName = (PIMAGE_IMPORT_BY_NAME)((DWORD64)file + Foa);
+                    printf("%s\n", pImpourByName->Name);
+                }
+                pIatTable++;
             }
-            else
-            {
-                Foa = RVATOFOA(file, pIatTable->u1.AddressOfData);
-                PIMAGE_IMPORT_BY_NAME pImpourByName = (PIMAGE_IMPORT_BY_NAME)((DWORD64)file + Foa);
-                printf("%s\n", pImpourByName->Name);
-            }
-            pIatTable++;
-        }
-
+        
     }
     else
     {
@@ -401,18 +407,24 @@ void parseBoundImportTable(FILE* file)
 void inforPrint(FILE* file)
 {
 
-    //parseDataDirectory((char*)file);
+	parseDataDirectory((char*)file);
 
-    //parseDataDirectory((char*)file);
+	parseExportDirectory((char*)file);
 
-    //parseExportDirectory((char*)file);
+    parseImportAddrTable(file);
 
-    parseImportTbale(file);
+	parseImportTbale(file);
+
+    parseBoundImportTable(file);
+
+    parseRcTable(file);
+
+    parseRelcDirectory((char*)file);
 }
 
 DWORD Align(DWORD src, DWORD des)
 {
-    return des * (src / des) + ((src % des == 0) ? 0 : des);
+	return des * (src / des) + ((src % des == 0) ? 0 : des);
 }
 
 
