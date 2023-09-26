@@ -8,8 +8,6 @@
 
 #include<stdio.h>
 #include<stdlib.h>
-#include <string>
-#include<vector>
 #include<iostream>
 #include<Windows.h>
 #include"function.h"
