@@ -41,7 +41,7 @@ int main(int argc, char* argv[])
     }
     fread_s(disfileptr, sizeOfFile, sizeOfFile, 1, fileptr);/*load in the memory*/
     printf("Usage: %s\n", argv[1]);
-   inforPrint((FILE*)disfileptr);
+  inforPrint((FILE*)disfileptr);
     system("pause");
     fclose(fileptr);
     free(disfileptr);
@@ -53,13 +53,15 @@ int main(int argc, char* argv[])
 void parseDataDirectory(char* file)
 {
 	printf("---------------------------------------------\n");
+    printf("DataDirectory\n");
 	PIMAGE_DOS_HEADER pDos = (PIMAGE_DOS_HEADER)file;
 	PIMAGE_NT_HEADERS pNt = (PIMAGE_NT_HEADERS)((DWORD64)file + pDos->e_lfanew);
 	for (int i = 0; i < IMAGE_NUMBEROF_DIRECTORY_ENTRIES; i++)
 	{
+        printf("--------\n");
 		printf("vietualAddress:%x\n", pNt->OptionalHeader.DataDirectory[i].VirtualAddress);
 		printf("size:%x\n", pNt->OptionalHeader.DataDirectory[i].Size);
-		printf("--------\n");
+		
 	}
 }
 //parse the export
@@ -129,6 +131,11 @@ void parseRelcDirectory(char* file)
 	PIMAGE_DOS_HEADER pDos = (PIMAGE_DOS_HEADER)file;
 	PIMAGE_NT_HEADERS pNt = (PIMAGE_NT_HEADERS)((DWORD64)file + pDos->e_lfanew);
 	DWORD64 BaseRelFoa = RVATOFOA(file, pNt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC].VirtualAddress);
+    if (!pNt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC].VirtualAddress && !pNt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC].Size)
+    {
+        printf("There is no relocation table\n");
+        return;
+    }
 	PIMAGE_BASE_RELOCATION pBaseReloc = (PIMAGE_BASE_RELOCATION)((DWORD64)file + BaseRelFoa);
 	for (int i = 0;; i++)
 	{
@@ -157,6 +164,11 @@ void parseRelcDirectory(char* file)
         PIMAGE_NT_HEADERS32 pNt = (PIMAGE_NT_HEADERS32)((DWORD64)file + pDos->e_lfanew);
         DWORD64 BaseRelFoa = RVATOFOA32(file, pNt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC].VirtualAddress);
         PIMAGE_BASE_RELOCATION pBaseReloc = (PIMAGE_BASE_RELOCATION)((DWORD64)file + BaseRelFoa);
+        if (!pNt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC].VirtualAddress && !pNt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC].Size)
+        {
+            printf("There is no relocation table\n");
+            return;
+        }
         for (int i = 0;; i++)
         {
             if (pBaseReloc->VirtualAddress == 0)
