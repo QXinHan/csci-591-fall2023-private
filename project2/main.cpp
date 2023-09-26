@@ -1,11 +1,9 @@
 /*
- * The next function contains is defined in function.h.
+ *  the next function contains is defined in function.h.
  *  the coding environment is x64 so I use DWORD64.
  *  because there is no bound import table in the two applications you provided,
  *  I have not test the 'parseBoundImportTable' function.
- *
- *
- *
+ *  some of the functions' parameter is char* and some is FILE*, there is no difference between them
 */
 
 #include<stdio.h>
@@ -44,8 +42,7 @@ int main(int argc, char* argv[])
     }
     fread_s(disfileptr, sizeOfFile, sizeOfFile, 1, fileptr);/*load in the memory*/
     printf("Usage: %s\n", argv[1]);
-    parseBoundImportTable((FILE*)disfileptr);
-    // inforPrint((FILE*)disfileptr);
+    inforPrint((FILE*)disfileptr);
     system("pause");
     fclose(fileptr);
     free(disfileptr);
@@ -401,13 +398,13 @@ void parseBoundImportTable(FILE* file)
 void inforPrint(FILE* file)
 {
 
-    //parseDataDirectory((char*)file);
+    parseDataDirectory((char*)file);
 
-    //parseDataDirectory((char*)file);
-
-    //parseExportDirectory((char*)file);
+    parseExportDirectory((char*)file);
 
     parseImportTbale(file);
+
+    parseBoundImportTable((FILE*)disfileptr);
 }
 
 DWORD Align(DWORD src, DWORD des)
