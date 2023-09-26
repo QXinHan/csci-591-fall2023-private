@@ -182,3 +182,7 @@ else
 ```
 
 _It is too long, when I am energetic I will solve the problem._
+
+## What I learned from this project
+
+_I learned how a executable use the function in other DLL, and have written a program for DLL injection._
