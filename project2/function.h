@@ -1,7 +1,10 @@
 #pragma once
 #include<stdio.h>
-#include<winnt.h>
-void parseDataDirectory(char* file);
+#include<stdlib.h>
+#include<iostream>
+#include<Windows.h>
+void parseDataDirectory64(char* file);
+void parseDataDirectory32(char* file);
 void parseExportDirectory(char* file);
 void parseRelcDirectory(char* file);
 void parseImportTbale(FILE* file);
