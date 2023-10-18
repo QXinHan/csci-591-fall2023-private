@@ -36,10 +36,10 @@ DWORD64 RVATOFOA32(PVOID file_buffer, DWORD Rva)
 }
 DWORD repairRelocationTable(PVOID peFile_exe1, DWORD ImageOffset) {
     PIMAGE_DOS_HEADER pDos = NULL;
-    PIMAGE_NT_HEADERS pNt = NULL;
+    PIMAGE_NT_HEADERS32 pNt = NULL;
     PIMAGE_BASE_RELOCATION pBaserel = NULL;
     pDos = (PIMAGE_DOS_HEADER)peFile_exe1;
-    pNt = (PIMAGE_NT_HEADERS)(((DWORD)peFile_exe1 + pDos->e_lfanew));
+    pNt = (PIMAGE_NT_HEADERS32)(((DWORD)peFile_exe1 + pDos->e_lfanew));
     pNt->OptionalHeader.ImageBase = pNt->OptionalHeader.ImageBase + ImageOffset;//This code is important , without it the program1.exe will not excute.
     pBaserel = (PIMAGE_BASE_RELOCATION)((DWORD)peFile_exe1 + RVATOFOA32(peFile_exe1, pNt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC].VirtualAddress));
     while (pBaserel->VirtualAddress && pBaserel->SizeOfBlock) {
@@ -47,7 +47,7 @@ DWORD repairRelocationTable(PVOID peFile_exe1, DWORD ImageOffset) {
         PWORD data = (PWORD)(((DWORD)pBaserel) + 8);
         for (size_t num = 0; num < NumberOfItems; num++)
         {
-            if (((*data) & 0xf000) == 0x3000) {
+            if (((*data) & 0x2000)) {
                 DWORD changeAddr = (*data) & 0x0fff;
                 changeAddr = pBaserel->VirtualAddress + changeAddr;
                 changeAddr = (DWORD)peFile_exe1 + RVATOFOA32(peFile_exe1, changeAddr);
@@ -72,7 +72,7 @@ int main() {
     }
     // Parse the program2.exe PE format and decrypt the section ".shell" to get program1.exe
     PIMAGE_DOS_HEADER pDos = (PIMAGE_DOS_HEADER)image2;
-    PIMAGE_NT_HEADERS pNt = (PIMAGE_NT_HEADERS)(pDos->e_lfanew + image2);
+    PIMAGE_NT_HEADERS32 pNt = (PIMAGE_NT_HEADERS32)(pDos->e_lfanew + image2);
     DWORD OEP_exe2 = pNt->OptionalHeader.AddressOfEntryPoint;
     DWORD imageBase_exe2 = pNt->OptionalHeader.ImageBase;
     PIMAGE_SECTION_HEADER pSec = (PIMAGE_SECTION_HEADER)(pNt + 1);
@@ -92,7 +92,7 @@ int main() {
     }
     // Parse the program1.exe
     pDos = (PIMAGE_DOS_HEADER)textStart;
-    pNt = (PIMAGE_NT_HEADERS)(pDos->e_lfanew + textStart);
+    pNt = (PIMAGE_NT_HEADERS32)(pDos->e_lfanew + textStart);
     pSec = (PIMAGE_SECTION_HEADER)(pNt + 1);
     DWORD imageSize_exe1 = pNt->OptionalHeader.SizeOfImage;
     DWORD imageHeaderSize_exe1 = pNt->OptionalHeader.SizeOfHeaders;
