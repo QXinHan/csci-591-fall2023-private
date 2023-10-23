@@ -23,8 +23,7 @@ public:
     void parseOptionHeader32(FILE* file);
     void parseOptionHeader64(FILE* file);
     /*the members of section header are the same but we need to use optional header to get the section header, so it is important to devide into 32-bits and 64-bits*/
-    void parseSecHeader32(FILE* file);
-    void parseSecHeader64(FILE* file);
+    void parseSecHeader(FILE* file);
     void inforPrint(FILE* file);
     bool Jude32or64(FILE* file);
 };

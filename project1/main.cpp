@@ -80,40 +80,15 @@ void parsePE::parseOptionHeader32(FILE* file)
     printf("SizeOfHeaders:%x\n", pOptionalHeader->SizeOfHeaders);
 }
 
-
-void parsePE::parseSecHeader64(FILE* file)
+void parsePE::parseSecHeader(FILE* file)
 {
     pDos = (PIMAGE_DOS_HEADER)file;
-    pNt64 = (PIMAGE_NT_HEADERS64)((char*)file + pDos->e_lfanew);
-    pSec = (PIMAGE_SECTION_HEADER)(pNt64 + 1);
-    size_t numberOfSec = pNt64->FileHeader.NumberOfSections;
-    printf("---------------------------------------------\n");
-    printf("SECTION_HEADER\n");
-    for (size_t i = 0; i < numberOfSec; i++)
-    {
-        PIMAGE_SECTION_HEADER pSecHeader = pSec + i;
-        char name[9] = {};
-        memcpy(name, pSecHeader->Name, 8);
-        printf("Name:%s\n", name);
-        printf("VirtualSize:%x\n", pSecHeader->Misc.VirtualSize);
-        printf("VirtualAddress:%x\n", pSecHeader->VirtualAddress);
-        printf("SizeOfRawData:%x\n", pSecHeader->SizeOfRawData);
-        printf("PointerToRawData:%x\n", pSecHeader->PointerToRawData);
-        printf("PointerToRelocations:%x\n", pSecHeader->PointerToRelocations);
-        printf("PointerToLinenumbers:%x\n", pSecHeader->PointerToLinenumbers);
-        printf("NumberOfRelocations:%x\n", pSecHeader->NumberOfRelocations);
-        printf("NumberOfLinenumbers:%x\n", pSecHeader->NumberOfLinenumbers);
-        printf("Characteristics:%x\n", pSecHeader->Characteristics);
-    }
-}
-
-
-void parsePE::parseSecHeader32(FILE* file)
-{
-    pDos = (PIMAGE_DOS_HEADER)file;
-    pNt32 = (PIMAGE_NT_HEADERS32)((char*)file + pDos->e_lfanew);
-    pSec = (PIMAGE_SECTION_HEADER)(pNt32 + 1);
-    size_t numberOfSec = pNt32->FileHeader.NumberOfSections;
+    pFileHeader = (PIMAGE_FILE_HEADER)((char*)file + pDos->e_lfanew + 4);
+    if(Jude32or64(file))
+        pSec = (PIMAGE_SECTION_HEADER)((char*)file + pDos->e_lfanew + sizeof(IMAGE_NT_HEADERS64));
+    else
+        pSec = (PIMAGE_SECTION_HEADER)((char*)file + pDos->e_lfanew + sizeof(IMAGE_NT_HEADERS32));
+    size_t numberOfSec = pFileHeader->NumberOfSections;
     printf("---------------------------------------------\n");
     printf("SECTION_HEADER\n");
     for (size_t i = 0; i < numberOfSec; i++)
@@ -147,14 +122,12 @@ void parsePE::inforPrint(FILE* file)
     if (Jude32or64(file))
     {
         parseOptionHeader64(file);
-        parseSecHeader64(file);
     }
     else
     {
         parseOptionHeader32(file);
-        parseSecHeader32(file);
     }
-
+    parseSecHeader(file);
 }
 
 bool parsePE::Jude32or64(FILE* file)
