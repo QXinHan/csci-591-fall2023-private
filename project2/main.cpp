@@ -113,7 +113,7 @@ void parseExportDirectory(char* file)
             printf("\nThere is no Export Directory\n");
             return;
         }
-        DWORD64 Foa = RVATOFOA32(file, pNt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress);
+        DWORD64 Foa = RVATOFOA(file, pNt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress);
         PIMAGE_EXPORT_DIRECTORY pExportDir = (PIMAGE_EXPORT_DIRECTORY)(Foa + (DWORD64)file);
         //print the information
         printf("---------------------------------------------\n");
@@ -170,7 +170,7 @@ void parseRelcDirectory(char* file)
         printf("BaseRelocationDirectory\n");
         PIMAGE_DOS_HEADER pDos = (PIMAGE_DOS_HEADER)file;
         PIMAGE_NT_HEADERS32 pNt = (PIMAGE_NT_HEADERS32)((DWORD64)file + pDos->e_lfanew);
-        DWORD64 BaseRelFoa = RVATOFOA32(file, pNt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC].VirtualAddress);
+        DWORD64 BaseRelFoa = RVATOFOA(file, pNt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC].VirtualAddress);
         PIMAGE_BASE_RELOCATION pBaseReloc = (PIMAGE_BASE_RELOCATION)((DWORD64)file + BaseRelFoa);
         if (!pNt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC].VirtualAddress && !pNt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC].Size)
         {
@@ -251,7 +251,7 @@ void parseImportTbale(FILE* file)
         printf("ImportTbale\n");
         PIMAGE_DOS_HEADER pDos = (PIMAGE_DOS_HEADER)file;
         PIMAGE_NT_HEADERS32 pNt = (PIMAGE_NT_HEADERS32)((DWORD64)file + pDos->e_lfanew);
-        DWORD64 ImportDirFoa = RVATOFOA32(file, pNt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress);
+        DWORD64 ImportDirFoa = RVATOFOA(file, pNt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress);
         PIMAGE_IMPORT_DESCRIPTOR pImportDir = (PIMAGE_IMPORT_DESCRIPTOR)((DWORD64)file + ImportDirFoa);
         if (pImportDir == NULL)
         {
@@ -266,9 +266,9 @@ void parseImportTbale(FILE* file)
                 break;
             }
             //dll name
-            char* dllName = (char*)((DWORD64)file + RVATOFOA32(file, pImportDir->Name));
+            char* dllName = (char*)((DWORD64)file + RVATOFOA(file, pImportDir->Name));
             //get the INT
-            PIMAGE_THUNK_DATA32 pThunkData = (PIMAGE_THUNK_DATA32)((DWORD64)file + RVATOFOA32(file, pImportDir->OriginalFirstThunk));
+            PIMAGE_THUNK_DATA32 pThunkData = (PIMAGE_THUNK_DATA32)((DWORD64)file + RVATOFOA(file, pImportDir->OriginalFirstThunk));
             //a loop for the INT
             printf("DLL NAME: %s\n", dllName);
             for (int i = 0;; i++)
@@ -280,7 +280,7 @@ void parseImportTbale(FILE* file)
                 }
                 else
                 {
-                    PIMAGE_IMPORT_BY_NAME ImportByNameAddr = (PIMAGE_IMPORT_BY_NAME)(RVATOFOA32(file, pThunkData->u1.AddressOfData) + (DWORD64)file);
+                    PIMAGE_IMPORT_BY_NAME ImportByNameAddr = (PIMAGE_IMPORT_BY_NAME)(RVATOFOA(file, pThunkData->u1.AddressOfData) + (DWORD64)file);
                     printf("ImportFunName:%s\n", ImportByNameAddr->Name);
                 }
                 pThunkData += 1;
@@ -337,7 +337,7 @@ void parseImportAddrTable(FILE* file)
             printf("There is no IAT\n");
             return;
         }
-        DWORD64 Foa = RVATOFOA32(file, pNt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IAT].VirtualAddress);
+        DWORD64 Foa = RVATOFOA(file, pNt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IAT].VirtualAddress);
         PIMAGE_THUNK_DATA32 pIatTable = (PIMAGE_THUNK_DATA32)((DWORD64)file + Foa);
         DWORD numOfTables = pNt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IAT].Size / sizeof(IMAGE_THUNK_DATA32);
         for (DWORD i = 0; i < numOfTables; i++)
@@ -349,7 +349,7 @@ void parseImportAddrTable(FILE* file)
             }
             else
             {
-                Foa = RVATOFOA32(file, pIatTable->u1.AddressOfData);
+                Foa = RVATOFOA(file, pIatTable->u1.AddressOfData);
                 PIMAGE_IMPORT_BY_NAME pImpourByName = (PIMAGE_IMPORT_BY_NAME)((DWORD64)file + Foa);
                 printf("%s\n", pImpourByName->Name);
             }
@@ -376,14 +376,15 @@ void parseBoundImportTable(FILE* file)
             char* name = (char*)((DWORD64)file + RVATOFOA(file, pNt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT].VirtualAddress + pboundImportDes->OffsetModuleName));
             printf("BoundDLLName:%s\n", name);
             DWORD numOfDll = pboundImportDes->NumberOfModuleForwarderRefs;
-            PIMAGE_BOUND_FORWARDER_REF pBoundRef = (PIMAGE_BOUND_FORWARDER_REF)((DWORD64)pboundImportDes + sizeof(PIMAGE_BOUND_IMPORT_DESCRIPTOR));
+            PIMAGE_BOUND_FORWARDER_REF pBoundRef = (PIMAGE_BOUND_FORWARDER_REF)((DWORD64)pboundImportDes + sizeof(IMAGE_BOUND_IMPORT_DESCRIPTOR));
             for (DWORD i = 0; i < numOfDll; i++)
             {
                 //The dll is used by the bounded dll.
                 name = (char*)((DWORD64)file + RVATOFOA(file, pNt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT].VirtualAddress + pBoundRef->OffsetModuleName));
                 printf("boundDllName:%s\n", name);
+                pBoundRef++;
             }
-            pboundImportDes++;
+            pboundImportDes = (PIMAGE_BOUND_IMPORT_DESCRIPTOR)(pBoundRef + 1);
         }
     }
     else {
@@ -394,29 +395,30 @@ void parseBoundImportTable(FILE* file)
             printf("There is no bound import table\n");
             return;
         }
-        DWORD64 Foa = RVATOFOA32(file, pNt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT].VirtualAddress);
+        DWORD64 Foa = RVATOFOA(file, pNt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT].VirtualAddress);
         PIMAGE_BOUND_IMPORT_DESCRIPTOR pboundImportDes = (PIMAGE_BOUND_IMPORT_DESCRIPTOR)((DWORD64)file + Foa);
         while (true)
         {
             if (pboundImportDes == 0) break;
-            char* name = (char*)((DWORD64)file + RVATOFOA32(file, pNt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT].VirtualAddress + pboundImportDes->OffsetModuleName));
+            char* name = (char*)((DWORD64)file + RVATOFOA(file, pNt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT].VirtualAddress + pboundImportDes->OffsetModuleName));
             printf("BoundDLLName:%s\n", name);
             DWORD numOfDll = pboundImportDes->NumberOfModuleForwarderRefs;
-            PIMAGE_BOUND_FORWARDER_REF pBoundRef = (PIMAGE_BOUND_FORWARDER_REF)((DWORD64)pboundImportDes + sizeof(PIMAGE_BOUND_IMPORT_DESCRIPTOR));
+            PIMAGE_BOUND_FORWARDER_REF pBoundRef = (PIMAGE_BOUND_FORWARDER_REF)((DWORD64)pboundImportDes + sizeof(IMAGE_BOUND_IMPORT_DESCRIPTOR));
             for (DWORD i = 0; i < numOfDll; i++)
             {
                 //The dll is used by the bounded dll.
-                name = (char*)((DWORD64)file + RVATOFOA32(file, pNt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT].VirtualAddress + pBoundRef->OffsetModuleName));
+                name = (char*)((DWORD64)file + RVATOFOA(file, pNt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT].VirtualAddress + pBoundRef->OffsetModuleName));
                 printf("boundDllName:%s\n", name);
+                pBoundRef++;
             }
-            pboundImportDes++;
+            pboundImportDes = (PIMAGE_BOUND_IMPORT_DESCRIPTOR)(pBoundRef + 1);
         }
     }
 }
 
 void inforPrint(FILE* file)
 {
-    if(Jude32or64(file))
+    if (Jude32or64(file))
         parseDataDirectory64((char*)file);
     else
         parseDataDirectory32((char*)file);
@@ -540,8 +542,8 @@ void parseRcTable(FILE* file)
     else
     {
         PIMAGE_NT_HEADERS32 pNt32 = (PIMAGE_NT_HEADERS32)((DWORD64)file + pDos->e_lfanew);
-        DWORD64 a = RVATOFOA32(file, pNt32->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_RESOURCE].VirtualAddress);
-        pRescDir1 = (PIMAGE_RESOURCE_DIRECTORY)((DWORD64)file + RVATOFOA32(file, pNt32->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_RESOURCE].VirtualAddress));
+        DWORD64 a = RVATOFOA(file, pNt32->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_RESOURCE].VirtualAddress);
+        pRescDir1 = (PIMAGE_RESOURCE_DIRECTORY)((DWORD64)file + RVATOFOA(file, pNt32->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_RESOURCE].VirtualAddress));
 
         numOfNameEntries1 = pRescDir1->NumberOfNamedEntries;
         numOfIdEntries1 = pRescDir1->NumberOfIdEntries;
@@ -574,7 +576,7 @@ void parseRcTable(FILE* file)
                     if (pRescDirEntry2->NameIsString)
                     {
                         PIMAGE_RESOURCE_DIR_STRING_U pNameStr = (PIMAGE_RESOURCE_DIR_STRING_U)((DWORD64)pRescDir1 + pRescDirEntry2->NameOffset);
-                        char* name = (char*)malloc(2*pNameStr->Length + 2);
+                        char* name = (char*)malloc(2 * pNameStr->Length + 2);
                         memset(name, 0, 2 * pNameStr->Length + 2);
                         memcpy(name, pNameStr->NameString, 2 * pNameStr->Length);
                         wprintf(L"%s\n", name);
@@ -620,45 +622,33 @@ void parseRcTable(FILE* file)
 DWORD64 RVATOFOA(PVOID file_buffer, DWORD64 Rva)
 {
     PIMAGE_DOS_HEADER pdos = (PIMAGE_DOS_HEADER)file_buffer;
-    PIMAGE_NT_HEADERS pnt = (PIMAGE_NT_HEADERS)(pdos->e_lfanew + (char*)pdos);
-    PIMAGE_SECTION_HEADER psec = (PIMAGE_SECTION_HEADER)(pnt + 1);
-    if (Rva <= pnt->OptionalHeader.SizeOfHeaders)
+    PIMAGE_NT_HEADERS64 pnt64 = nullptr;
+    PIMAGE_NT_HEADERS32 pnt32 = nullptr;
+    PIMAGE_SECTION_HEADER psec = nullptr;
+    DWORD sizeofHeaders = 0;
+    DWORD numofSecs = 0;
+    if (Jude32or64((FILE*)file_buffer))
     {
-        return (DWORD64)Rva;
+        pnt64 = (PIMAGE_NT_HEADERS)(pdos->e_lfanew + (char*)pdos);
+        psec = (PIMAGE_SECTION_HEADER)(pnt64 + 1);
+        sizeofHeaders = pnt64->OptionalHeader.SizeOfHeaders;
+        numofSecs = pnt64->FileHeader.NumberOfSections;
     }
-    for (WORD i = 0; i < pnt->FileHeader.NumberOfSections; i++)
+    else
     {
-        if (i + 1 != pnt->FileHeader.NumberOfSections)
-        {
-            if (Rva >= psec[i].VirtualAddress && Rva < psec[i + 1].VirtualAddress)
-            {
+        pnt32 = (PIMAGE_NT_HEADERS32)(pdos->e_lfanew + (char*)pdos);
+        psec = (PIMAGE_SECTION_HEADER)(pnt32 + 1);
+        sizeofHeaders = pnt32->OptionalHeader.SizeOfHeaders;
+        numofSecs = pnt32->FileHeader.NumberOfSections;
+    }
 
-                DWORD64 offset = Rva - psec[i].VirtualAddress;
-                DWORD64 FOA = offset + psec[i].PointerToRawData;
-                return FOA;
-            }
-        }
-        else
-        {
-            DWORD64 offset = Rva - psec[i].VirtualAddress;
-            DWORD64 FOA = offset + psec[i].PointerToRawData;
-            return FOA;
-        }
-    }
-    return -1;
-}
-DWORD64 RVATOFOA32(PVOID file_buffer, DWORD Rva)
-{
-    PIMAGE_DOS_HEADER pdos = (PIMAGE_DOS_HEADER)file_buffer;
-    PIMAGE_NT_HEADERS32 pnt = (PIMAGE_NT_HEADERS32)(pdos->e_lfanew + (char*)pdos);
-    PIMAGE_SECTION_HEADER psec = (PIMAGE_SECTION_HEADER)(pnt + 1);
-    if (Rva <= pnt->OptionalHeader.SizeOfHeaders)
+    if (Rva <= sizeofHeaders)
     {
         return (DWORD64)Rva;
     }
-    for (WORD i = 0; i < pnt->FileHeader.NumberOfSections; i++)
+    for (WORD i = 0; i < numofSecs; i++)
     {
-        if (i + 1 != pnt->FileHeader.NumberOfSections)
+        if (i + 1 != numofSecs)
         {
             if (Rva >= psec[i].VirtualAddress && Rva < psec[i + 1].VirtualAddress)
             {
