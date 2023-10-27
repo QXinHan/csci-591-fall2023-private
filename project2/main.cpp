@@ -372,16 +372,16 @@ void parseBoundImportTable(FILE* file)
         PIMAGE_BOUND_IMPORT_DESCRIPTOR pboundImportDes = (PIMAGE_BOUND_IMPORT_DESCRIPTOR)((DWORD64)file + Foa);
         while (true)
         {
-            if (pboundImportDes == 0) break;
+            if (pboundImportDes == 0 || pboundImportDes->NumberOfModuleForwarderRefs == 0) break;
             char* name = (char*)((DWORD64)file + RVATOFOA(file, pNt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT].VirtualAddress + pboundImportDes->OffsetModuleName));
             printf("BoundDLLName:%s\n", name);
             DWORD numOfDll = pboundImportDes->NumberOfModuleForwarderRefs;
             PIMAGE_BOUND_FORWARDER_REF pBoundRef = (PIMAGE_BOUND_FORWARDER_REF)((DWORD64)pboundImportDes + sizeof(IMAGE_BOUND_IMPORT_DESCRIPTOR));
             for (DWORD i = 0; i < numOfDll; i++)
             {
-                //The dll is used by the bounded dll.
+                //The function is bounded in the dll.
                 name = (char*)((DWORD64)file + RVATOFOA(file, pNt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT].VirtualAddress + pBoundRef->OffsetModuleName));
-                printf("boundDllName:%s\n", name);
+                printf("boundFunctionName:%s\n", name);
                 pBoundRef++;
             }
             pboundImportDes = (PIMAGE_BOUND_IMPORT_DESCRIPTOR)(pBoundRef + 1);
@@ -399,16 +399,16 @@ void parseBoundImportTable(FILE* file)
         PIMAGE_BOUND_IMPORT_DESCRIPTOR pboundImportDes = (PIMAGE_BOUND_IMPORT_DESCRIPTOR)((DWORD64)file + Foa);
         while (true)
         {
-            if (pboundImportDes == 0) break;
+            if (pboundImportDes == 0 || pboundImportDes->NumberOfModuleForwarderRefs == 0) break;
             char* name = (char*)((DWORD64)file + RVATOFOA(file, pNt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT].VirtualAddress + pboundImportDes->OffsetModuleName));
             printf("BoundDLLName:%s\n", name);
             DWORD numOfDll = pboundImportDes->NumberOfModuleForwarderRefs;
             PIMAGE_BOUND_FORWARDER_REF pBoundRef = (PIMAGE_BOUND_FORWARDER_REF)((DWORD64)pboundImportDes + sizeof(IMAGE_BOUND_IMPORT_DESCRIPTOR));
             for (DWORD i = 0; i < numOfDll; i++)
             {
-                //The dll is used by the bounded dll.
+                //The function is bounded in the dll.
                 name = (char*)((DWORD64)file + RVATOFOA(file, pNt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT].VirtualAddress + pBoundRef->OffsetModuleName));
-                printf("boundDllName:%s\n", name);
+                printf("boundFunctionName:%s\n", name);
                 pBoundRef++;
             }
             pboundImportDes = (PIMAGE_BOUND_IMPORT_DESCRIPTOR)(pBoundRef + 1);
