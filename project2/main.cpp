@@ -418,7 +418,9 @@ void parseBoundImportTable(FILE* file)
 
 void inforPrint(FILE* file)
 {
-    if (Jude32or64(file))
+
+    /*
+    * if (Jude32or64(file))
         parseDataDirectory64((char*)file);
     else
         parseDataDirectory32((char*)file);
@@ -433,10 +435,10 @@ void inforPrint(FILE* file)
     parseRcTable(file);
 
     parseRelcDirectory((char*)file);
-    /*
-    dfsparseRcTable(file, NULL,1);
-    bfsparseRcTable(file, 1);
+
     */
+    dfsparseRcTable(file, NULL, 1);
+    // bfsparseRcTable(file, 1);
 
 }
 
@@ -625,8 +627,7 @@ void parseRcTable(FILE* file)
     }
 }
 void dfsparseRcTable(FILE* file, PIMAGE_RESOURCE_DIRECTORY curDir, DWORD floor)//第一个是文件首地址，第二个是当前所处目录的指针，第三个表示解析到第几层了
-{//完美
-    if (floor == 3) return;
+{
     PIMAGE_DOS_HEADER pDos = (PIMAGE_DOS_HEADER)file;
     PIMAGE_NT_HEADERS64 pNt64 = NULL;
     PIMAGE_NT_HEADERS32 pNt32 = NULL;
@@ -636,7 +637,7 @@ void dfsparseRcTable(FILE* file, PIMAGE_RESOURCE_DIRECTORY curDir, DWORD floor)/
     PIMAGE_RESOURCE_DIRECTORY_ENTRY pRescDirEntry = nullptr;
     if (Jude32or64(file))
     {
-        pNt64 = (PIMAGE_NT_HEADERS)((DWORD64)file + pDos->e_lfanew);
+        pNt64 = (PIMAGE_NT_HEADERS64)((DWORD64)file + pDos->e_lfanew);
         DWORD64 a = RVATOFOA(file, pNt64->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_RESOURCE].VirtualAddress);
         pRescDir = (PIMAGE_RESOURCE_DIRECTORY)((DWORD64)file + RVATOFOA(file, pNt64->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_RESOURCE].VirtualAddress));
         if (floor == 1) curDir = pRescDir;
@@ -653,31 +654,39 @@ void dfsparseRcTable(FILE* file, PIMAGE_RESOURCE_DIRECTORY curDir, DWORD floor)/
     for (DWORD i = 0; i < numOfIdEntries + numOfNameEntries; i++)
     {
         pRescDirEntry = (PIMAGE_RESOURCE_DIRECTORY_ENTRY)((DWORD64)curDir + sizeof(IMAGE_RESOURCE_DIRECTORY) + i * 8);
-        if (pRescDirEntry->NameIsString)
-        {
-            PIMAGE_RESOURCE_DIR_STRING_U pNameStr = (PIMAGE_RESOURCE_DIR_STRING_U)((DWORD64)pRescDir + pRescDirEntry->NameOffset);
-            char* name = (char*)malloc(2 * pNameStr->Length + 2);
-            memset(name, 0, 2 * pNameStr->Length + 2);
-            memcpy(name, pNameStr->NameString, 2 * pNameStr->Length);
-            wprintf(L"%s\n", name);
-            free(name);
-        }
-        else
-        {
-            printf("Res%d ID: %x\n",floor+1 ,pRescDirEntry->Id);
+        if (floor <= 2) {
+            if (pRescDirEntry->NameIsString)
+            {
+                PIMAGE_RESOURCE_DIR_STRING_U pNameStr = (PIMAGE_RESOURCE_DIR_STRING_U)((DWORD64)pRescDir + pRescDirEntry->NameOffset);
+                char* name = (char*)malloc(2 * pNameStr->Length + 2);
+                memset(name, 0, 2 * pNameStr->Length + 2);
+                memcpy(name, pNameStr->NameString, 2 * pNameStr->Length);
+                wprintf(L"%s\n", name);
+                free(name);
+            }
+            else
+            {
+                printf("Res%d ID: %x\n", floor + 1, pRescDirEntry->Id);
+            }
         }
         if (pRescDirEntry->DataIsDirectory)
         {
             dfsparseRcTable(
                     file,
                     (PIMAGE_RESOURCE_DIRECTORY)((DWORD64)pRescDir + (pRescDirEntry->OffsetToData & 0x7fffffff)),
-                    floor+1
+                    floor + 1
             );
+        }
+        else
+        {
+            PIMAGE_RESOURCE_DATA_ENTRY pDataEntry = (PIMAGE_RESOURCE_DATA_ENTRY)((DWORD64)pRescDir + (pRescDirEntry->OffsetToData & 0x7fffffff));
+            printf("offset: %x\n", pDataEntry->OffsetToData);
+            printf("size: %x\n", pDataEntry->Size);
         }
     }
 
 }
-void bfsparseRcTable(FILE* file,DWORD floor)
+void bfsparseRcTable(FILE* file, DWORD floor)
 {
     queue<LPVOID>point1;
     PIMAGE_DOS_HEADER pDos = (PIMAGE_DOS_HEADER)file;
@@ -691,7 +700,7 @@ void bfsparseRcTable(FILE* file,DWORD floor)
     PIMAGE_RESOURCE_DIRECTORY_ENTRY pRescDirEntry = nullptr;
     if (Jude32or64(file))
     {
-        pNt64 = (PIMAGE_NT_HEADERS)((DWORD64)file + pDos->e_lfanew);
+        pNt64 = (PIMAGE_NT_HEADERS64)((DWORD64)file + pDos->e_lfanew);
         DWORD64 a = RVATOFOA(file, pNt64->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_RESOURCE].VirtualAddress);
         pRescDir = (PIMAGE_RESOURCE_DIRECTORY)((DWORD64)file + RVATOFOA(file, pNt64->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_RESOURCE].VirtualAddress));
         pRescDirr = pRescDir;
@@ -734,7 +743,7 @@ void bfsparseRcTable(FILE* file,DWORD floor)
         {
             printf("Res%d ID: %x\n", floor + 1, pRescDirEntry->Id);
         }
-        if (pRescDirEntry->DataIsDirectory&& floor == 1)
+        if (pRescDirEntry->DataIsDirectory && floor == 1)
         {
             pRescDirr = (PIMAGE_RESOURCE_DIRECTORY)((DWORD64)pRescDir + (pRescDirEntry->OffsetToData & 0x7fffffff));
             for (DWORD i = 0; i < pRescDirr->NumberOfIdEntries + pRescDirr->NumberOfNamedEntries; i++)
@@ -754,7 +763,7 @@ DWORD64 RVATOFOA(PVOID file_buffer, DWORD64 Rva)
     DWORD numofSecs = 0;
     if (Jude32or64((FILE*)file_buffer))
     {
-        pnt64 = (PIMAGE_NT_HEADERS)(pdos->e_lfanew + (char*)pdos);
+        pnt64 = (PIMAGE_NT_HEADERS64)(pdos->e_lfanew + (char*)pdos);
         psec = (PIMAGE_SECTION_HEADER)(pnt64 + 1);
         sizeofHeaders = pnt64->OptionalHeader.SizeOfHeaders;
         numofSecs = pnt64->FileHeader.NumberOfSections;
