@@ -11,6 +11,7 @@ using namespace std;
 const char test1[] = "C:\\Users\\QQmian\\Desktop\\AntivirusPlatinum.exe";
 const char test2[] = "C:\\Users\\QQmian\\Desktop\\WindowsProject1.exe";//32-bit
 const char test3[] = "C:\\Users\\QQmian\\Desktop\\Stardust.EXE";//64-bit
+const char test4[] = "C:\\Users\\QQmian\\Desktop\\kernel32(1).dll";
 int main(int argc, char* argv[])
 {
     if (argc == 1)
@@ -372,7 +373,7 @@ void parseBoundImportTable(FILE* file)
         PIMAGE_BOUND_IMPORT_DESCRIPTOR pboundImportDes = (PIMAGE_BOUND_IMPORT_DESCRIPTOR)((DWORD64)file + Foa);
         while (true)
         {
-            if (pboundImportDes == 0 || pboundImportDes->NumberOfModuleForwarderRefs == 0) break;
+            if (pboundImportDes->OffsetModuleName == 0 && pboundImportDes->NumberOfModuleForwarderRefs == 0) break;
             char* name = (char*)((DWORD64)file + RVATOFOA(file, pNt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT].VirtualAddress + pboundImportDes->OffsetModuleName));
             printf("BoundDLLName:%s\n", name);
             DWORD numOfDll = pboundImportDes->NumberOfModuleForwarderRefs;
@@ -384,7 +385,7 @@ void parseBoundImportTable(FILE* file)
                 printf("boundFunctionName:%s\n", name);
                 pBoundRef++;
             }
-            pboundImportDes = (PIMAGE_BOUND_IMPORT_DESCRIPTOR)(pBoundRef + 1);
+            pboundImportDes =  (PIMAGE_BOUND_IMPORT_DESCRIPTOR)pBoundRef;
         }
     }
     else {
@@ -399,7 +400,7 @@ void parseBoundImportTable(FILE* file)
         PIMAGE_BOUND_IMPORT_DESCRIPTOR pboundImportDes = (PIMAGE_BOUND_IMPORT_DESCRIPTOR)((DWORD64)file + Foa);
         while (true)
         {
-            if (pboundImportDes == 0 || pboundImportDes->NumberOfModuleForwarderRefs == 0) break;
+            if (pboundImportDes->OffsetModuleName == 0 && pboundImportDes->NumberOfModuleForwarderRefs == 0) break;
             char* name = (char*)((DWORD64)file + RVATOFOA(file, pNt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT].VirtualAddress + pboundImportDes->OffsetModuleName));
             printf("BoundDLLName:%s\n", name);
             DWORD numOfDll = pboundImportDes->NumberOfModuleForwarderRefs;
@@ -411,7 +412,7 @@ void parseBoundImportTable(FILE* file)
                 printf("boundFunctionName:%s\n", name);
                 pBoundRef++;
             }
-            pboundImportDes = (PIMAGE_BOUND_IMPORT_DESCRIPTOR)(pBoundRef + 1);
+            pboundImportDes = (PIMAGE_BOUND_IMPORT_DESCRIPTOR)pBoundRef;
         }
     }
 }
@@ -437,7 +438,8 @@ void inforPrint(FILE* file)
     parseRelcDirectory((char*)file);
 
     */
-    dfsparseRcTable(file, NULL, 1);
+    parseBoundImportTable(file);
+    // dfsparseRcTable(file, NULL, 1);
     // bfsparseRcTable(file, 1);
 
 }
