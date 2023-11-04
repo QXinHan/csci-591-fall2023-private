@@ -438,8 +438,8 @@ void inforPrint(FILE* file)
     parseRelcDirectory((char*)file);
 
     */
-    parseBoundImportTable(file);
-    // dfsparseRcTable(file, NULL, 1);
+
+     dfsparseRcTable(file, NULL, 1);
     // bfsparseRcTable(file, 1);
 
 }
@@ -656,7 +656,7 @@ void dfsparseRcTable(FILE* file, PIMAGE_RESOURCE_DIRECTORY curDir, DWORD floor)/
     for (DWORD i = 0; i < numOfIdEntries + numOfNameEntries; i++)
     {
         pRescDirEntry = (PIMAGE_RESOURCE_DIRECTORY_ENTRY)((DWORD64)curDir + sizeof(IMAGE_RESOURCE_DIRECTORY) + i * 8);
-        if (floor <= 2) {
+        if (floor <= 3) {
             if (pRescDirEntry->NameIsString)
             {
                 PIMAGE_RESOURCE_DIR_STRING_U pNameStr = (PIMAGE_RESOURCE_DIR_STRING_U)((DWORD64)pRescDir + pRescDirEntry->NameOffset);
@@ -668,15 +668,15 @@ void dfsparseRcTable(FILE* file, PIMAGE_RESOURCE_DIRECTORY curDir, DWORD floor)/
             }
             else
             {
-                printf("Res%d ID: %x\n", floor + 1, pRescDirEntry->Id);
+                printf("Res%d ID: %x\n", floor, pRescDirEntry->Id);
             }
         }
         if (pRescDirEntry->DataIsDirectory)
         {
             dfsparseRcTable(
-                    file,
-                    (PIMAGE_RESOURCE_DIRECTORY)((DWORD64)pRescDir + (pRescDirEntry->OffsetToData & 0x7fffffff)),
-                    floor + 1
+                file,
+                (PIMAGE_RESOURCE_DIRECTORY)((DWORD64)pRescDir + (pRescDirEntry->OffsetToData & 0x7fffffff)),
+                floor + 1
             );
         }
         else
