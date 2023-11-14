@@ -3,19 +3,49 @@
 #include<Windows.h>
 #include <ntstatus.h>
 typedef NTSTATUS(WINAPI* fnNtUnmapViewOfSection)(HANDLE ProcessHandle, PVOID BaseAddress);
+bool Jude32or64(FILE* file)
+{
+    PIMAGE_DOS_HEADER pDos = (PIMAGE_DOS_HEADER)file;
+    PIMAGE_NT_HEADERS pNt = (PIMAGE_NT_HEADERS)((DWORD64)file + pDos->e_lfanew);
+    PIMAGE_FILE_HEADER pFileHeader = (PIMAGE_FILE_HEADER)((DWORD64)pNt + 4);
+    PIMAGE_OPTIONAL_HEADER pOptionalHeader = PIMAGE_OPTIONAL_HEADER((DWORD64)pFileHeader + sizeof(IMAGE_FILE_HEADER));
+    if (pOptionalHeader->Magic == IMAGE_NT_OPTIONAL_HDR64_MAGIC)
+    {
+        return 1;
+    }
+    return 0;
+}
 // Rva to Foa
-DWORD64 RVATOFOA32(PVOID file_buffer, DWORD Rva)
+DWORD64 RVATOFOA32(PVOID file_buffer, DWORD64 Rva)
 {
     PIMAGE_DOS_HEADER pdos = (PIMAGE_DOS_HEADER)file_buffer;
-    PIMAGE_NT_HEADERS32 pnt = (PIMAGE_NT_HEADERS32)(pdos->e_lfanew + (char*)pdos);
-    PIMAGE_SECTION_HEADER psec = (PIMAGE_SECTION_HEADER)(pnt + 1);
-    if (Rva <= pnt->OptionalHeader.SizeOfHeaders)
+    PIMAGE_NT_HEADERS64 pnt64 = nullptr;
+    PIMAGE_NT_HEADERS32 pnt32 = nullptr;
+    PIMAGE_SECTION_HEADER psec = nullptr;
+    DWORD sizeofHeaders = 0;
+    DWORD numofSecs = 0;
+    if (Jude32or64((FILE*)file_buffer))
+    {
+        pnt64 = (PIMAGE_NT_HEADERS64)(pdos->e_lfanew + (char*)pdos);
+        psec = (PIMAGE_SECTION_HEADER)(pnt64 + 1);
+        sizeofHeaders = pnt64->OptionalHeader.SizeOfHeaders;
+        numofSecs = pnt64->FileHeader.NumberOfSections;
+    }
+    else
+    {
+        pnt32 = (PIMAGE_NT_HEADERS32)(pdos->e_lfanew + (char*)pdos);
+        psec = (PIMAGE_SECTION_HEADER)(pnt32 + 1);
+        sizeofHeaders = pnt32->OptionalHeader.SizeOfHeaders;
+        numofSecs = pnt32->FileHeader.NumberOfSections;
+    }
+
+    if (Rva <= sizeofHeaders)
     {
         return (DWORD64)Rva;
     }
-    for (WORD i = 0; i < pnt->FileHeader.NumberOfSections; i++)
+    for (WORD i = 0; i < numofSecs; i++)
     {
-        if (i + 1 != pnt->FileHeader.NumberOfSections)
+        if (i + 1 != numofSecs)
         {
             if (Rva >= psec[i].VirtualAddress && Rva < psec[i + 1].VirtualAddress)
             {
@@ -34,7 +64,7 @@ DWORD64 RVATOFOA32(PVOID file_buffer, DWORD Rva)
     }
     return -1;
 }
-DWORD repairRelocationTable(PVOID peFile_exe1, DWORD ImageOffset) {
+DWORD repairRelocationTable(PVOID peFile_exe1, DWORD64 ImageOffset) {
     PIMAGE_DOS_HEADER pDos = NULL;
     PIMAGE_NT_HEADERS32 pNt = NULL;
     PIMAGE_BASE_RELOCATION pBaserel = NULL;
@@ -117,16 +147,16 @@ int main() {
     ZeroMemory(&si, sizeof(si));
     si.cb = sizeof(STARTUPINFO);
     bool sucess = CreateProcess(
-            appName,
-            NULL,
-            NULL,                     // 进程安全属性
-            NULL,                     // 线程安全属性
-            FALSE,                    // 是否继承句柄
-            CREATE_SUSPENDED,         // 标志位，暂停创建的进程
-            NULL,                     // 使用父进程的环境变量
-            NULL,                     // 使用父进程的当前目录
-            &si,                      // 启动信息
-            &pi                       // 进程信息
+        appName,
+        NULL,
+        NULL,                     // 进程安全属性
+        NULL,                     // 线程安全属性
+        FALSE,                    // 是否继承句柄
+        CREATE_SUSPENDED,         // 标志位，暂停创建的进程
+        NULL,                     // 使用父进程的环境变量
+        NULL,                     // 使用父进程的当前目录
+        &si,                      // 启动信息
+        &pi                       // 进程信息
     );
     if (sucess == FALSE) {
         printf("failed to create new process\n");
@@ -163,7 +193,7 @@ int main() {
             return 1;
         }
     }
-        // Not get the expected memory
+    // Not get the expected memory
     else {
         if (realImage_exe1 == NULL)
         {
