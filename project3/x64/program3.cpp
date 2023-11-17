@@ -1,3 +1,13 @@
+/*
+__author__ = "Zhuoyun Qian"
+__copyright__ = "Copyright 2023, Zhuoyun Qian"
+__license__ = "Apache"
+__version__ = "1.0.0"
+__maintainer__ = "Zhuoyun Qian"
+__email__ = "qianzhuoyun@nenu.edu.cn"
+__status__ = "Prototype"
+*/
+
 #include <iostream>
 #include<stdio.h>
 #include<stdlib.h>
@@ -45,6 +55,7 @@ int main()
     for (BYTE* i = (BYTE*)image1; i < (BYTE*)image1 + sizeOfFile_1; i++) {
         *i ^= 0x40;
     }
+
     // Open and parse the program2.exe.
     fopen_s(&peFile_2, ".\\program2.exe", "rb");
     fseek(peFile_2, 0, SEEK_END);
@@ -53,6 +64,7 @@ int main()
     fseek(peFile_2, 0, SEEK_SET);
     fread(image2, sizeOfFile_2, 1, peFile_2);
     fclose(peFile_2);
+
     PIMAGE_DOS_HEADER pDos = (PIMAGE_DOS_HEADER)image2;
     PIMAGE_NT_HEADERS pNt = (PIMAGE_NT_HEADERS)(pDos->e_lfanew + image2);
     PIMAGE_SECTION_HEADER pSec = (PIMAGE_SECTION_HEADER)(pNt + 1);
@@ -68,6 +80,7 @@ int main()
     size_t lastSecLocation = pSec[secCnt - 1].VirtualAddress;
     size_t lastSecSize = pSec[secCnt - 1].Misc.VirtualSize;
     size_t newSecRva = lastSecLocation + Align(lastSecSize,pNt->OptionalHeader.SectionAlignment);
+
     // Copy the encrypted program1.exe into the new section.
     memcpy(pNewSec->Name, ".shell", 7);
     pNewSec->Misc.VirtualSize = Align(sizeOfFile_1, pNt->OptionalHeader.SectionAlignment);
@@ -75,6 +88,8 @@ int main()
     pNewSec->VirtualAddress = newSecRva;
     pNewSec->PointerToRawData = sizeOfFile_2;
     pNewSec->Characteristics = IMAGE_SCN_MEM_READ | IMAGE_SCN_MEM_WRITE | IMAGE_SCN_CNT_CODE;
+
+    //write new exe into program2.exe
     char* cur = image2 + sizeOfFile_2;
     memcpy(cur, image1, sizeOfFile_1);
     fopen_s(&peFile_2, ".\\program2.exe", "wb");

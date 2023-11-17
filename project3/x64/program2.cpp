@@ -1,10 +1,22 @@
+/*
+__author__ = "Zhuoyun Qian"
+__copyright__ = "Copyright 2023, Zhuoyun Qian"
+__license__ = "Apache"
+__version__ = "1.0.0"
+__maintainer__ = "Zhuoyun Qian"
+__email__ = "qianzhuoyun@nenu.edu.cn"
+__status__ = "Prototype"
+*/
+
 #include<stdio.h>
 #include<stdlib.h>
 #include<Windows.h>
 #include <ntstatus.h>
 #include<winternl.h>
+
 typedef NTSTATUS(WINAPI* fnNtUnmapViewOfSection)(HANDLE ProcessHandle, PVOID BaseAddress);
 typedef NTSTATUS(*fnNtQueryInformationProcess)(HANDLE, PROCESSINFOCLASS, PVOID, ULONG, PULONG);
+
 bool Jude32or64(FILE* file)
 {
     PIMAGE_DOS_HEADER pDos = (PIMAGE_DOS_HEADER)file;
@@ -26,6 +38,7 @@ DWORD64 RVATOFOA32(PVOID file_buffer, DWORD64 Rva)
     PIMAGE_SECTION_HEADER psec = nullptr;
     DWORD sizeofHeaders = 0;
     DWORD numofSecs = 0;
+
     if (Jude32or64((FILE*)file_buffer))
     {
         pnt64 = (PIMAGE_NT_HEADERS64)(pdos->e_lfanew + (char*)pdos);
@@ -70,6 +83,7 @@ DWORD repairRelocationTable(PVOID peFile_exe1, DWORD64 ImageOffset) {
     PIMAGE_DOS_HEADER pDos = NULL;
     PIMAGE_NT_HEADERS64 pNt = NULL;
     PIMAGE_BASE_RELOCATION pBaserel = NULL;
+
     pDos = (PIMAGE_DOS_HEADER)peFile_exe1;
     pNt = (PIMAGE_NT_HEADERS64)(((DWORD64)peFile_exe1 + pDos->e_lfanew));
     pNt->OptionalHeader.ImageBase = pNt->OptionalHeader.ImageBase + ImageOffset;//This code is important , without it the program1.exe will not excute.
@@ -96,12 +110,14 @@ int main() {
     PVOID image1;
     char* image2;
     PVOID peFile_exe1;
+
     // To get the program2.exe file
     image2 = (char*)GetModuleHandle(NULL);
     if (image2 == NULL) {
         printf("image2 == NULL");
         return 1;
     }
+
     // Parse the program2.exe PE format and decrypt the section ".shell" to get program1.exe
     PIMAGE_DOS_HEADER pDos = (PIMAGE_DOS_HEADER)image2;
     PIMAGE_NT_HEADERS64 pNt = (PIMAGE_NT_HEADERS64)(pDos->e_lfanew + image2);
@@ -122,6 +138,7 @@ int main() {
     for (BYTE* i = (BYTE*)textStart; i < (BYTE*)textStart + textSize; i++) {
         *i ^= 0x40;
     }
+
     // Parse the program1.exe
     pDos = (PIMAGE_DOS_HEADER)textStart;
     pNt = (PIMAGE_NT_HEADERS64)(pDos->e_lfanew + textStart);
@@ -131,6 +148,7 @@ int main() {
     DWORD64 imageBase_exe1 = pNt->OptionalHeader.ImageBase;
     DWORD64 imageOEP_exe1 = pNt->OptionalHeader.AddressOfEntryPoint;
     DWORD cntSec = pNt->FileHeader.NumberOfSections;
+
     //Stretch the program1.exe to the memory
     peFile_exe1 = (LPVOID)malloc(textSize);
     memset(peFile_exe1, 0, textSize);
@@ -141,6 +159,7 @@ int main() {
     for (DWORD i = 0; i < cntSec; i++) {
         memcpy((LPVOID)((DWORD64)image1 + pSec[i].VirtualAddress), (LPVOID)((DWORD64)peFile_exe1 + pSec[i].PointerToRawData), pSec[i].SizeOfRawData);
     }
+
     // Create a suspended process "program2.exe"
     TCHAR appName[] = TEXT("program2.exe");
     PROCESS_INFORMATION pi;
@@ -151,26 +170,28 @@ int main() {
     bool sucess = CreateProcess(
         appName,
         NULL,
-        NULL,                     // 进程安全属性
-        NULL,                     // 线程安全属性
-        FALSE,                    // 是否继承句柄
-        CREATE_SUSPENDED,         // 标志位，暂停创建的进程
-        NULL,                     // 使用父进程的环境变量
-        NULL,                     // 使用父进程的当前目录
-        &si,                      // 启动信息
-        &pi                       // 进程信息
+        NULL,                     
+        NULL,                     
+        FALSE,                    
+        CREATE_SUSPENDED,         
+        NULL,                     
+        NULL,                     
+        &si,                      
+        &pi                       
     );
     if (sucess == FALSE) {
         printf("failed to create new process\n");
         system("pause");
         return 1;
     }
+
     // Get the context of the suspended process
-    HMODULE hNtdll = LoadLibrary(L"ntdll.dll");
     CONTEXT context;
     context.ContextFlags = CONTEXT_FULL;
     GetThreadContext(pi.hThread, &context);
+
     //To get API "NtUnmapViewOfSection" from ntdll.dll
+    HMODULE hNtdll = LoadLibrary(L"ntdll.dll");
     if (hNtdll == NULL) {
         printf("Error:fail to connect ntdll.dll\n");
         return 1;
@@ -181,16 +202,20 @@ int main() {
         printf("Error:we can not get the function named ZwUnmapViewOfSection or fNtQueryInformationProcess\n");
         return 1;
     }
-    // Use API NtUnmapViewOfSection to uninstall the memory of main thread
+
+    //get the PEB of the suspended process
     DWORD64 len;
     DWORD64 susProImageBase;
     PROCESS_BASIC_INFORMATION info{ 0 };
     NTSTATUS stat = fNtQueryInformationProcess(pi.hProcess, ProcessBasicInformation, &info, sizeof(info), NULL);
-   // DWORD64 susProImageBase = *(DWORD64*)((DWORD64)info.PebBaseAddress + 0X10);
     ReadProcessMemory(pi.hProcess, LPCVOID((DWORD64)info.PebBaseAddress + 0X10), &susProImageBase, 8,NULL);
+
+    // Use API NtUnmapViewOfSection to uninstall the memory of main thread
     NTSTATUS status = fNtUnmapViewOfSection(pi.hProcess, (PVOID)susProImageBase);
+
     // Use API "VirtualAllocEx" to allocate memory for the stretched program1.exe
     DWORD64 realImage_exe1 = (DWORD64)VirtualAllocEx(pi.hProcess, (LPVOID)imageBase_exe1, imageSize_exe1, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+
     // Get the expected memory
     if (realImage_exe1 == imageBase_exe1) {
         bool copySuc = WriteProcessMemory(pi.hProcess, (LPVOID)realImage_exe1, (LPCVOID)image1, imageSize_exe1, NULL);
@@ -206,29 +231,38 @@ int main() {
         {
             realImage_exe1 = (DWORD64)VirtualAllocEx(pi.hProcess, NULL, imageSize_exe1, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
         }
+
         // Repair the relocation table
         repairRelocationTable(peFile_exe1, (SIZE_T)realImage_exe1 - imageBase_exe1);
+
         // Recopy the repaired program1.exe to the buffer "image1"
         memset(image1, 0, imageSize_exe1);
         memcpy(image1, (void*)peFile_exe1, imageHeaderSize_exe1);
         for (DWORD i = 0; i < cntSec; i++) {
             memcpy((LPVOID)((DWORD64)image1 + pSec[i].VirtualAddress), (LPVOID)((DWORD64)peFile_exe1 + pSec[i].PointerToRawData), pSec[i].SizeOfRawData);
         }
+
         bool copySuc = WriteProcessMemory(pi.hProcess, (LPVOID)realImage_exe1, (LPCVOID)image1, imageSize_exe1, NULL);
         if (!copySuc) {
             printf("Error:i do not know how to solve it!");
             return 1;
         }
     }
+
     // Set the context and back to main thread
     context.Rip = imageOEP_exe1 + (DWORD64)realImage_exe1;
     WriteProcessMemory(pi.hProcess, (LPVOID)((DWORD64)info.PebBaseAddress + 0X10), &realImage_exe1, 8, NULL);
     context.ContextFlags = CONTEXT_FULL;
+
     SetThreadContext(pi.hThread, &context);
+
     ResumeThread(pi.hThread);
+
     free(image1);
     free(peFile_exe1);
     FreeLibrary(hNtdll);
-    system("pause");
+    CloseHandle(pi.hProcess);
+    CloseHandle(pi.hThread);
+
     return 0;
 }
