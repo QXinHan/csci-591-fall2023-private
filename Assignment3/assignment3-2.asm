@@ -1,3 +1,8 @@
+; the program has a function to print out all ASCII
+; character set.
+
+
+
 bits 64
 default rel
 
@@ -19,24 +24,29 @@ function:
     sub rsp,32
 
     mov rcx,126
-   ;the decimal value from 32 to 126 can display on the screen
+   ;the decimal value from 32 to 126 can be printed out on the screen
 loop_start:
     mov [temp],rcx
     push rcx
+    
+    push rbp
+    mov rbp, rsp
+    sub rsp, 32 ;need to allocate the stack space for the function "printf"
     ;print the ascii by "%c"
     mov rdx,qword [temp]
     mov rcx,ch_out
     call printf
+    add rsp, 32
+    pop rbp
+
     ;if the rcx is 32 then end the loop and the function
-    cmp qword [temp],32
+    cmp qword [temp],33
     je func_end
 
     pop rcx
-
-loop loop_start
-
+    loop loop_start
+    
 func_end:
-    xor rax,rax
     ret
 
 main:
