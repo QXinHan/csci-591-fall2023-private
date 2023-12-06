@@ -20,6 +20,5 @@ The binary data of the two files is the same, But when I modify the extension na
 
 The data in the second one  is binary. I open the `testPNG.png` by WinHex and copy the binary data to the `text.txt`.
 
-卧槽，我知道了，这里我看到的实际上是不同的二进制数据，编码方式不同。二进制数据-》通过某一种编码方式-》得到我在txt文本钟所看见的内容。
+The data in the second screenshot is the binary code for the image, I write a program to read them and and write them into a file.
 
-所以晚上需要写一个程序读取第二章截图里面，txt文本的内容（单字节读取），然后把它转化为png图片。
