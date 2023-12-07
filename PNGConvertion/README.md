@@ -10,7 +10,7 @@ The code works successfully. I read the file `testPNG.png` and write the data of
 
 **The `.txt` file:**
 
-![capture_20231206163657022](https://github.com/QXinHan/csci-591-fall2023-private/blob/main/PNGConvertion/capture_20231206163657022.bmp)
+![capture_20231206163657022](https://github.com/QXinHan/csci-591-fall2023-private/blob/main/PNGConvertion/READMEImage/capture_20231206163948491.bmp)
 
 **In utf-8 it is:**
 
