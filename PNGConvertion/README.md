@@ -10,11 +10,12 @@ The code works successfully. I read the file `testPNG.png` and write the data of
 
 **The `.txt` file:**
 
-![capture_20231206163657022](https://github.com/QXinHan/csci-591-fall2023-private/blob/main/PNGConvertion/READMEImage/capture_20231206163948491.bmp)
+![image](https://github.com/QXinHan/csci-591-fall2023-private/blob/main/PNGConvertion/READMEImage/capture_20231206163657022.bmp)
 
 **In utf-8 it is:**
 
-![image](https://github.com/QXinHan/csci-591-fall2023-private/blob/main/PNGConvertion/READMEImage/capture_20231206163657022.bmp)
+
+![capture_20231206163657022](https://github.com/QXinHan/csci-591-fall2023-private/blob/main/PNGConvertion/READMEImage/capture_20231206163948491.bmp)
 
 The binary data of the two files is the same, But when I modify the extension name(`.txt`) of the two files to `.png` respectively. The first one works correctly and I get the image, but the second one fails. **I think the problem is caused by the difference of the encoding(UTF-8 and ANSI), just a guess and don't know why.**
 
