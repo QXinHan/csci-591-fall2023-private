@@ -1,6 +1,32 @@
 # README
 
-**I still have some problems:**
+- **Name :** Zhuoyun Qian
 
-* in this code I think the program sends three mails to the recipients why?
-* some other problems I show you in my weekly slides.
+- **Email :** qianzhuoyun@nenu.edu.cn
+
+  
+
+## Quiz1
+
+### Task 1:locate the malicious code 
+
+_I use the following format to sign the malicious code,_
+
+```c++
+/**********************************************************/
+// malicious code...
+/**********************************************************/
+```
+
+### Task 1:use API  `networkx` to draw a directed graph to show the invocation
+
+
+_note: because I have located the malicious code,so this graph is just about the malicious code invocation relationship._
+
+_There is the directed graph,_
+
+
+
+![Figure_1](.\\readmeimage\Figure_1.png)
+
+_In quiz2 I will draw all the invocation's relationship and highlight the malicious sequence._
