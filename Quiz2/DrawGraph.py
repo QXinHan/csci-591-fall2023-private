@@ -2,17 +2,39 @@ import networkx as nx
 import matplotlib.pyplot as plt
 
 '''
-I just note the function developed by the writer not the API,
 so each node represents a function or a code module developed by the developer.
 Each directed edge represents the relationship between two node,
 such as, function A invokes function B and how it works. 
 '''
+search_path=[]
 
-# draw a directed graph to show the function invotion
+'''
+# depth-first-search to search the malicious path and print it
+# /param G:the directed graph
+# /param V:the started node('main' function)
+# /param edge_attribute:the special edges' attribute that needs to be paid attention
+# /param edge_attribute_value:if the edge's attribute value is edge_attribute_value then it will be marked
+'''
+def travel(G,V,edge_attribute,edge_attribute_value):
+    if(G.out_degree(V)==0):
+        print({'name': 'main', 'paramtyp': 'void', 'rettype': 'int', 'fun': True})
+        for i in search_path:
+            print(G.nodes[i])
+        print('----------------------------------------------')
+        search_path.clear()
+        return
+    else:
+        for node in G.neighbors(V):
+            edge_data=G.get_edge_data(V,node)
+            if G.has_edge(V,node) and edge_data.get(edge_attribute)==edge_attribute_value:
+                search_path.append(node)
+                travel(G,node,edge_attribute,edge_attribute_value)
+
+# draw a directed graph to show the function invocation
 G = nx.DiGraph()
 
 # add nodes
-# nodes's attributes are return value type, function name, parameters
+# nodes' attributes are return value type, parameters type, function name
 G.add_node(0,name='main',paramtyp='void',rettype='int',fun=True)
 G.add_node(1,name='WriteData',paramtyp='string',rettype='void',fun=True)
 G.add_node(2,name='SpecialKey',paramtyp='int',rettype='bool',fun=True)
@@ -33,42 +55,43 @@ G.add_node(16,name='(thread logger(logger))logger.join',paramtyp='void',rettype=
 G.add_node(17,name='(thread screens(screens))screens.joinable',paramtyp='void',rettype='void',fun=False)
 G.add_node(18,name='(thread screens(screens))screens.join',paramtyp='void',rettype='void',fun=False)
 G.add_node(19,name='_access',paramtyp='const char*,int',rettype='int',fun=True)
-G.add_node(19,name='_mkdir',paramtyp='const char*',rettype='int',fun=True)
-G.add_node(20,name='AllocConsole',paramtyp='void',rettype='void',fun=True)
-G.add_node(21,name='FindWindowA',paramtyp='LPCSTR,LPCSTR',rettype='HANDLE',fun=True)
-G.add_node(22,name='ShowWindow',paramtyp='HWND,int',rettype='BOOL',fun=True)
-G.add_node(23,name='system',paramtyp='const char*',rettype='bool',fun=True)
-G.add_node(24,name='GetFilePointer',paramtyp='HANDLE',rettype='int',fun=False)
-G.add_node(25,name='setFilePointer',paramtyp='HANDLE,int,int,int',rettype='int',fun=True)
-G.add_node(26,name='SaveBMPFile',paramtyp='char*,HBITMAP,HDC,int,int',rettype='bool',fun=False)
+G.add_node(20,name='_mkdir',paramtyp='const char*',rettype='int',fun=True)
+G.add_node(21,name='AllocConsole',paramtyp='void',rettype='void',fun=True)
+G.add_node(22,name='FindWindowA',paramtyp='LPCSTR,LPCSTR',rettype='HANDLE',fun=True)
+G.add_node(23,name='ShowWindow',paramtyp='HWND,int',rettype='BOOL',fun=True)
+G.add_node(24,name='system',paramtyp='const char*',rettype='bool',fun=True)
+G.add_node(25,name='GetFilePointer',paramtyp='HANDLE',rettype='int',fun=False)
+G.add_node(26,name='setFilePointer',paramtyp='HANDLE,int,int,int',rettype='int',fun=True)
+G.add_node(27,name='SaveBMPFile',paramtyp='char*,HBITMAP,HDC,int,int',rettype='bool',fun=False)
 
 '''
-# a loop to show the nodes and attributes
+# a loop to print the nodes and attributes
 for node,attrs in G.nodes(data=True):
     print(node,attrs)
 '''
 # add edges
-G.add_edge('main','_access',desc='NULL',color='b',width='1.0')
-G.add_edge('_access','_mkdir',desc='NULL',color='b',width='1.0')
-G.add_edge('main','util.FindPath',desc='NULL',color='b',width='1.0')
-G.add_edge('main','wstring',desc='NULL',color='b',width='1.0')
-G.add_edge('main','CopyFile',desc='self-replicate',color='r',width='2.5')
-G.add_edge('main','util.HideConsole',desc='avoid being detected',color='r',width='2.5')
-G.add_edge('util.HideConsole','AllocConsole',desc='NULL',color='b',width='1.0')
-G.add_edge('util.HideConsole','FindWindowA',desc='NULL',color='b',width='1.0')
-G.add_edge('util.HideConsole','ShowWindow',desc='hide console',color='r',width='2.5')
-G.add_edge('main','util.Autoload',desc='exe boots itself',color='r',width='2.5')
-G.add_edge('util.Autoload','system',desc='write in registry',color='r',width='2.5')
-G.add_edge('main','util.Screenshot',desc='get the screenshot',color='r',width='2.5')
-G.add_edge('util.Screenshot','SaveBMPFile',desc='save the bmpbit',color='r',width='2.5')
-G.add_edge('main','(thread logger(logger))logger.joinable',desc='judge if execute',color='r',width='2.5')
-G.add_edge('(thread logger(logger))logger.joinable','(thread logger(logger))logger.join',desc='monitor the key stroke',color='r',width='2.5')
-G.add_edge('(thread logger(logger))logger.join','SpecialKeys',desc='monitor the key stroke',color='r',width='2.5')
-G.add_edge('SpecialKeys','WriteData',desc='write the key stroke into buffer',color='r',width='2.5')
-G.add_edge('main','(thread screens(screens))screens.joinable',desc='judge if execute',color='r',width='2.5')
-G.add_edge('(thread screens(screens))screens.joinable','(thread logger(screens))screens.join',desc='monitor the screen',color='r',width='2.5')
-G.add_edge('(thread logger(screens))screens.join','util.Screenshot',desc='get the screenshot',color='r',width='2.5')
+G.add_edge(0,19,desc='NULL',color='b',width='1.0')
+G.add_edge(19,20,desc='NULL',color='b',width='1.0')
+G.add_edge(0,10,desc='NULL',color='b',width='1.0')
+G.add_edge(0,7,desc='NULL',color='b',width='1.0')
+G.add_edge(0,5,desc='self-replicate',color='r',width='2.5')
+G.add_edge(0,8,desc='avoid being detected',color='r',width='2.5')
+G.add_edge(8,21,desc='NULL',color='b',width='1.0')
+G.add_edge(8,22,desc='NULL',color='b',width='1.0')
+G.add_edge(8,23,desc='hide console',color='r',width='2.5')
+G.add_edge(0,9,desc='exe boots itself',color='r',width='2.5')
+G.add_edge(9,24,desc='write in registry',color='r',width='2.5')
+G.add_edge(0,13,desc='get the screenshot',color='r',width='2.5')
+G.add_edge(13,27,desc='save the bmpbit',color='r',width='2.5')
+G.add_edge(0,15,desc='judge if execute',color='r',width='2.5')
+G.add_edge(15,16,desc='monitor the key stroke',color='r',width='2.5')
+G.add_edge(16,2,desc='monitor the key stroke',color='r',width='2.5')
+G.add_edge(2,1,desc='write the key stroke into buffer',color='r',width='2.5')
+G.add_edge(0,17,desc='judge if execute',color='r',width='2.5')
+G.add_edge(17,18,desc='monitor the screen',color='r',width='2.5')
+G.add_edge(18,13,desc='get the screenshot',color='r',width='2.5')
 
+'''
 # generate all the nodes' attributes
 node_labels={}
 for node in G.nodes:
@@ -78,23 +101,29 @@ for node in G.nodes:
 edge_labels = {}
 for edge in G.edges:
     edge_labels[edge] = G[edge[0]][edge[1]]
+'''
+
+#####
+# To find the malicious paths and print them
+travel(G,0,'color','r')
+#####
 
 # set the attributes of nodes
 pos=nx.arf_layout(G)
 
 # draw the graph
-
-# show the edges's attributes
-# nx.draw_networkx_edge_labels(G,pos,edge_labels=edge_labels)
-
-
 nx.draw(G
         ,pos
-        ,with_labels=True
+        ,with_labels=False
         ,edge_color=[edge_attrs['color'] for _,_,edge_attrs in G.edges(data=True)]
         )
 
+# draw the node's name(function name)
+node_labels=nx.get_node_attributes(G,'name')
+nx.draw_networkx_labels(G,pos,labels=node_labels,font_size=10,alpha=0.7)
+
+# show the graph
 plt.show()
+
 # close the graph
 G.clear()
-
