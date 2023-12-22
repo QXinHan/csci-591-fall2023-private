@@ -27,6 +27,5 @@ _There is the directed graph,_
 
 
 
-![Figure_1](.\\readmeimage\Figure_1.png)
-
+![Figure_1](https://github.com/QXinHan/csci-591-fall2023-private/blob/main/Quiz1/readmeimage/Figure_1.png)
 _In quiz2 I will draw all the invocation's relationship and highlight the malicious sequence._

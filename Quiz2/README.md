@@ -12,9 +12,9 @@
 
 _It is the directed graph. The red edge means malicious invocation._
 
-![Figure_1](.\\image\Figure_1.png)
+![Figure_1](https://github.com/QXinHan/csci-591-fall2023-private/blob/main/Quiz2/image/Figure_1.png)
 
 _Depth-First search to  print out the malicious invocation path ._
 
-![Figure_2](.\\image\Figure_2.bmp)
+![Figure_2](https://github.com/QXinHan/csci-591-fall2023-private/blob/main/Quiz2/image/Figure_2.bmp)
 
