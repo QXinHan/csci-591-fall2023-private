@@ -28,6 +28,6 @@ _The graph:_
 
 _The result that displays on the console:_
 
-
+![imagec](https://github.com/QXinHan/csci-591-fall2023-private/blob/main/Assignment4/images/malware3_console.bmp)
 
 _From malware1.c to malware5 I will summarize the commonly used apis and structures._
