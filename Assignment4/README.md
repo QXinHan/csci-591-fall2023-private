@@ -41,4 +41,4 @@ _The result that displays on the console:_
 
 ![imagec2](https://github.com/QXinHan/csci-591-fall2023-private/blob/main/Assignment4/images/malware4_console1.bmp)
 
-![imagec3](https://github.com/QXinHan/csci-591-fall2023-private/blob/main/Assignment4/images/malware4_console2.bmp)
+![imagec3](https://github.com/QXinHan/csci-591-fall2023-private/blob/main/Assignment4/images/malware3_console2.bmp)
