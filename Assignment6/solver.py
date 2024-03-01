@@ -48,9 +48,11 @@ def main(argv):
         :return: None
         '''
         global constrains_cnt
-        """这里发现angr的一个问题，locxxx的算作函数，而subxxx的算作函数，当jmp到loc的时候，不能用function.name否则会报错"""
-        """
-        the fallowing two lines' codes, can not successfully find the function 'strcmp'
+        """I have encountered a problem with angr, 
+        the 'subxxx' is considered as a function but the 'locxxx' is not
+        thus if the program steps into a state that labelled by 'locxxx',
+        the code `function = cfg.functions.get_by_addr(state.addr)` is wrong.
+        so if I use the fallowing two lines' code, the program can not successfully find the function 'strcmp'
         function = cfg.functions.get_by_addr(state.addr)
         if function.name == 'strcmp':
         """
@@ -72,6 +74,7 @@ def main(argv):
 
                 # 通过地址获得字符串,并且添加约束，这里已经添加完了啊？问题：可能加不进约束
                 # 有个问题：在里面添加的约束在外面用不了！
+                # 这个有点乱，我会用中文描述
                 if(value_rdx != 0 and value_rdx <= 0x150000000 and constrains_cnt == 0):
                     constrains_cnt += 1
                     constrained_string = state.solver.eval(state.mem[value_rdx].string.resolved, cast_to=bytes).decode()
