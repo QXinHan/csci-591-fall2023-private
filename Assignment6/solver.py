@@ -20,11 +20,10 @@ def main(argv):
     options = {angr.options.SYMBOL_FILL_UNCONSTRAINED_REGISTERS,
                angr.options.SYMBOL_FILL_UNCONSTRAINED_MEMORY}
     state = project.factory.blank_state(addr=start_addr, add_options=options)
-
+    state_for_solution = project.factory.blank_state() #for add constrains and get the solution
     # symbolize the password, set the size to 8
     password_size = 8
-    password = state.solver.BVS("password", 8*password_size)
-
+    solution_password = state_for_solution.solver.BVS("password", 8*password_size)
     cfg = project.analyses.CFGFast() # get the cfg
     malicious_state_list = [] # used to store the malicious state
 
@@ -80,24 +79,26 @@ def main(argv):
                     constrained_string = state.solver.eval(state.mem[value_rdx].string.resolved, cast_to=bytes).decode()
                     constrained_string = state.solver.BVV(constrained_string, 64)
                     print('the constrain is', constrained_string)
-                    state.solver.add(password == constrained_string)
-                    solution = state.solver.eval(password, cast_to=bytes).decode()
-                    print('the answer is %s' % solution)
+                    state_for_solution.solver.add(solution_password == constrained_string)
 
                 if (value_rcx != 0 and value_rcx <= 0x150000000 and constrains_cnt == 0):
                     constrains_cnt += 1
                     constrained_string = state.solver.eval(state.mem[value_rcx].string.resolved, cast_to=bytes).decode()
                     constrained_string = state.solver.BVV(constrained_string, 64)
                     print('the constrain is', constrained_string)
-                    state.solver.add(password == constrained_string)
-                    solution = state.solver.eval(password, cast_to=bytes).decode()
-                    print('the answer is %s' % solution)
+                    state_for_solution.solver.add(solution_password == constrained_string)
 
                 malicious_state_list.append(state)
                 return
     explore(state)
-    # print(state.solver.eval(password, cast_to=bytes).decode()) I can not get the correct answer!
-    print(malicious_state_list)
+    # print(malicious_state_list) # the malicious list
+    solution = state_for_solution.solver.eval(solution_password, cast_to=bytes).decode()
+    if solution:
+        print('Get the backdoor password!')
+        print('The password is %s' % solution)
+    else:
+        print('Error : failed to get backdoor password!')
+
 
 if __name__ == '__main__':
     main(sys.argv)
