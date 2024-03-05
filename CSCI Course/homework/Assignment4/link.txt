@@ -1,0 +1,6 @@
+
+malware4
+https://github.com/jamiekariuki/Remote-acces-trojan/blob/master/backdoor.c
+
+malware5:
+https://github.com/Zatrac/botnet-ex/blob/master/Client/killer.h

@@ -1,0 +1,551 @@
+
+<!-- saved from url=(0045)http://bytepointer.com/resources/tebpeb64.htm -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>BYTE* / Undocumented 64-bit PEB and TEB Structures</title>
+<style type="text/css">
+<!--
+@font-face                  {font-family:'ibmvga9';src:url('/vgacharst/ibmvga9.ttf')}
+body                        {padding-left:9px;padding-top:8px;padding-bottom:8px;padding-right:9px;background-color:#000000;color:#AAAAAA;margin:0px}
+table,th,td,li,ul           {font-family:inherit;font-size:inherit}
+.embedbody                  {font-family:sans-serif;font-size:10pt;background-color:#1D3662;margin:0px;color:#E0E0E0;padding-left:4px;padding-top:3px;padding-bottom:3px;padding-right:4px}
+form                        {margin:0px}
+.root_string                {color:#FFFFFF;background-color:#0000FF}
+.root_comment               {background-color:#AA0000;color:#FFFFFF}
+.root_sectionlink:link      {background-color:#1D3662;color:#55FF55;font-family:ibmvga9,'Lucida Console', 'Lucida Sans Typewriter', Monaco, 'Bitstream Vera Sans Mono', monospace;font-size:12pt;text-decoration:none}
+.root_sectionlink:visited   {background-color:#1D3662;color:#35DF35;font-family:ibmvga9,'Lucida Console', 'Lucida Sans Typewriter', Monaco, 'Bitstream Vera Sans Mono', monospace;font-size:12pt;text-decoration:none}
+.root_sectionlink:active    {color:#FFFFFF;font-family:ibmvga9,'Lucida Console', 'Lucida Sans Typewriter', Monaco, 'Bitstream Vera Sans Mono', monospace;font-size:12pt;text-decoration:none}
+.root_sectionlink:hover     {color:#FFFFFF;font-family:ibmvga9,'Lucida Console', 'Lucida Sans Typewriter', Monaco, 'Bitstream Vera Sans Mono', monospace;font-size:12pt;text-decoration:none}
+.bcppmsglink:link           {color:#AA00AA}
+.bcppmsglink:visited        {color:#575757}
+.bcppmsglink:active         {color:#FFFFFF}
+.bcppmsglink:hover          {color:#000000}
+.tdglyph                    {width:9px;height:16px;white-space:nowrap}
+.tdglyphautohorzbard        {background-image:url('/vgacharst/dhm.png');background-repeat:repeat-x;height:16px}
+.tdglyphautohorzbars        {background-image:url('/vgacharst/shm.png');background-repeat:repeat-x;height:16px}
+.tdglyphautovertbard        {background-image:url('/vgacharst/dvm.png');background-repeat:repeat-y;width:9px}
+.tdglyphautovertbars        {background-image:url('/vgacharst/svm.png');background-repeat:repeat-y;width:9px}
+.tdglyphautohorzscrollbg    {background-image:url('/vgacharst/scrollbg.png');background-repeat:repeat-x;height:16px}
+.tdglyphautovertscrollbg    {background-image:url('/vgacharst/scrollbg.png');background-repeat:repeat-y;width:9px}
+.tdglyphautohorzbars_blk    {background-image:url('/vgacharst/shm_blk.png');background-repeat:repeat-x;height:16px}
+.tdglyphautovertbars_blk    {background-image:url('/vgacharst/svm_blk.png');background-repeat:repeat-y;width:9px}
+.dbxtable                   {background-color:#1D3662;width:100%}
+.dbxtitle                   {background-color:#1D3662;color:#FFFFFF;font-family:ibmvga9,'Lucida Console', 'Lucida Sans Typewriter', Monaco, 'Bitstream Vera Sans Mono', monospace;font-size:12pt}
+.dbxcontent                 {background-color:#1D3662;color:#8888FF;font-family:ibmvga9,'Lucida Console', 'Lucida Sans Typewriter', Monaco, 'Bitstream Vera Sans Mono', monospace;font-size:12pt;height:100%}
+.sbxtable                   {background-color:#00AAAA;width:100%}
+.sbxtitle                   {background-color:#00AAAA;color:#1D3662;font-family:ibmvga9,'Lucida Console', 'Lucida Sans Typewriter', Monaco, 'Bitstream Vera Sans Mono', monospace;font-size:12pt}
+.sbxcontent                 {background-color:#00AAAA;color:#1D3662;font-family:ibmvga9,'Lucida Console', 'Lucida Sans Typewriter', Monaco, 'Bitstream Vera Sans Mono', monospace;font-size:12pt;height:100%;word-wrap:break-word}
+.sbx_ddmenutable            {background-color:#AAAAAA;width:100%}
+.sbx_ddmenutitle            {background-color:#AAAAAA;color:#000000;font-family:ibmvga9,'Lucida Console', 'Lucida Sans Typewriter', Monaco, 'Bitstream Vera Sans Mono', monospace;font-size:12pt}
+.sbx_ddmenucontent          {background-color:#AAAAAA;color:#000000;font-family:ibmvga9,'Lucida Console', 'Lucida Sans Typewriter', Monaco, 'Bitstream Vera Sans Mono', monospace;font-size:12pt;height:100%;word-wrap:break-word}
+.menubar                    {background-color:#AAAAAA;color:#000000;font-family:ibmvga9,'Lucida Console', 'Lucida Sans Typewriter', Monaco, 'Bitstream Vera Sans Mono', monospace;font-size:12pt;white-space:nowrap}
+.menubarhot                 {color:#AA0000;font-family:ibmvga9,'Lucida Console', 'Lucida Sans Typewriter', Monaco, 'Bitstream Vera Sans Mono', monospace;font-size:12pt;white-space:nowrap}
+.menubardisabled            {color:#5A5A5A;font-family:ibmvga9,'Lucida Console', 'Lucida Sans Typewriter', Monaco, 'Bitstream Vera Sans Mono', monospace;font-size:12pt;white-space:nowrap}
+.menubarlink                {text-decoration:none}
+.menubarlink:link           {color:#000000;text-decoration:none}
+.menubarlink:visited        {color:#000000}
+.menubarlink:active         {color:#FFFFFF}
+.menubarlink:hover          {background-color:#00AA00;text-decoration:none}
+.menubarhotlink             {text-decoration:none}
+.menubarhotlink:link        {color:#AA0000;text-decoration:none}
+.menubarhotlink:visited     {color:#AA0000}
+.menubarhotlink:active      {color:#AA0000}
+.menubarhotlink:hover       {background-color:#00AA00;text-decoration:none}
+
+/* drop down menu functionality */
+.ddul                       {list-style:none;margin:0px;padding:0px;position:relative}
+.ddli,.ddlitop              {font-family:ibmvga9,'Lucida Console', 'Lucida Sans Typewriter', Monaco, 'Bitstream Vera Sans Mono', monospace;font-size:12pt;padding:0px}
+
+/* for some reason menus break under IE when the following inheritance chain is > 2*/
+li.ddlitop  ul.ddul         {display:none;position:absolute;background-color:#AAAAAA;top:1em;left:-0.5em}  /* hide sub-menus */
+
+/* drop-down the <ul> menu upon hover of the <li> item */
+ul.ddul li:hover ul.ddul,   /*ff and all other browsers*/
+li.li_hover_hack ul.ddul     /*ie6 and up*/
+                            {display:block}
+
+
+.navbarcontainer            {padding-left:8px;padding-top:6px;padding-right:32px}
+.textfilecontainer          {padding-left:6px;padding-top:6px;padding-right:32px}
+.rootbackbutton             {font-family:'Lucida Console', 'Lucida Sans Typewriter', Monaco, 'Bitstream Vera Sans Mono', monospace;font-size:12pt;border:outset 4px #A0A0A0;background-color:#25457D}
+.header                     {font-weight:bold;font-size:16pt;color:#7CFF35}
+.subheader                  {font-weight:bold;font-size:14pt;color:#D7D707}
+.tutsubheader               {font-weight:bold;font-size:12pt;color:#D7D707}
+.dateheader                 {font-family:Tahoma, Verdana, Segoe, sans-serif;font-size:10pt;color:#A0A0A0}
+.datecontent                {font-family:Tahoma, Verdana, Segoe, sans-serif;font-size:10pt;color:#D0D0D0}
+.tutcontainer               {font-family:Tahoma, Verdana, Segoe, sans-serif;font-size:12pt}
+
+.noticeheader               {font-weight:bold;font-size:12pt;color:#81E4FF}
+.noticetext                 {font-family:Verdana, Geneva, sans-serif;font-size:11pt;color:#8DADFF}
+.formcaption                {font-weight:bold;font-size:12pt;color:#2EFFE0}
+.lindent                    {padding-left:32px}
+.buildvercell               {padding-left:16px}
+.errortext                  {color:#FF0000}
+
+.jumplink:link              {color:#16FF26}
+.jumplink:visited           {color:#16FF26}
+.jumplink:active            {color:#FFFFFF}
+.jumplink:hover             {background-color:#3C71CD;color:#000000}
+.jumplink                   {text-decoration:none}
+
+.domnavpagelink:link        {color:#FFC508}
+.domnavpagelink:visited     {color:#FFC508}
+.domnavpagelink:active      {color:#FFFFFF}
+.domnavpagelink:hover       {background-color:#FFC508;color:#000000}
+.domnavpagelink             {text-decoration:none;font-family:Verdana, Geneva, sans-serif;font-size:9pt}
+.domnavpagecurpage          {font-family:Verdana, Geneva, sans-serif;font-weight:bold;font-size:9pt;color:#FFDF12}
+.domnavpagetext             {font-family:Verdana, Geneva, sans-serif;font-size:9pt;color:#993F03}
+
+.keywordtbllink_table       {padding-left:6px;padding-right:6px;padding-top:4px;padding-bottom:4px;border:solid 1px #909090}
+.keywordtbllink_sectheader  {font-family:Verdana, Geneva, sans-serif;font-weight:bold;font-size:10pt;color:#30F8FF}
+.keywordtbl                 {padding-left:32px;padding-bottom:24px;padding-top:8px}
+.keywordtbl_sectheader      {font-family:Verdana, Geneva, sans-serif;font-weight:bold;font-size:14pt;color:#7CFF35;background-color:#274A86;width:450px;padding-left:12px;padding-top:6px;padding-bottom:6px}
+.keywordtbl_header          {font-family:Verdana, Geneva, sans-serif;font-weight:bold;font-size:9pt;color:#30F8FF;padding-bottom:2px}
+
+.cmdlinebracket             {font-family:'Courier New', Courier, 'Lucida Sans Typewriter', 'Lucida Typewriter', monospace;font-size:12pt;font-weight:bold}
+.cmdlinelink                {font-family:'Courier New', Courier, 'Lucida Sans Typewriter', 'Lucida Typewriter', monospace;font-size:9pt;font-style:italic;text-decoration:none;font-weight:bold}
+.cmdlinelink:link           {color:#E0FFE0}
+.cmdlinelink:visited        {color:#E0FFE0}
+.cmdlinelink:hover          {color:#FFFFFF;background-color:#3360AE}
+
+.disclaimer                 {font-family:Arial, 'Helvetica Neue', Helvetica, sans-serif;font-size:9pt;color:#A0A0A0}
+.summary                    {font-family:Verdana, Geneva, sans-serif;font-size:10pt;color:#F5F5F5}
+
+.dlc                        {font-family:Arial, 'Helvetica Neue', Helvetica, sans-serif;font-size:9pt;color:#FFFFFF;white-space:nowrap;padding-right:8px}
+
+.quickcell                  {padding-left:4px;padding-right:4px}
+.quickcellr                 {padding-left:4px;padding-right:4px;text-align:right}
+
+.progversion                {font-family:'Arial Black', 'Arial Bold', Gadget, sans-serif;font-size:11pt;color:#7CFF35}
+.progfileinfo               {font-family:'Courier New', Courier, 'Lucida Sans Typewriter', 'Lucida Typewriter', monospace;font-size:9pt;color:#FFFFFF}
+.progsummary                {font-family:Verdana, Geneva, sans-serif;font-size:10pt;color:#E0E0E0}
+.progstats                  {font-family:Arial, 'Helvetica Neue', Helvetica, sans-serif;font-size:9pt;color:#C0C0FF}
+td                          {font-family:Verdana, Geneva, sans-serif;font-size:9pt;color:#A0A0B0}
+th                          {font-family:Verdana, Geneva, sans-serif;font-size:9pt;color:#D0D0F0;font-weight:bold}
+
+.ulmain                     {display:block;list-style-type:disc;margin-top:1em;margin-bottom:1em;margin-left:0;margin-right:0;padding-left:16px}
+
+li                          {font-family:Verdana, Geneva, sans-serif;font-size:inherit;color:#E0E0E0;padding-bottom:6px}
+pre                         {font-family:'Courier New', Courier, 'Lucida Sans Typewriter', 'Lucida Typewriter', monospace;font-size:10pt;color:#F0F0F0}
+.prebg                      {font-family:'Courier New', Courier, 'Lucida Sans Typewriter', 'Lucida Typewriter', monospace;font-size:10pt;color:#F0F0F0;background-color:#12223E;padding-left:6px;padding-bottom:2px;padding-top:4px;padding-right:6px}
+.emailboxpre                {font-family:'Courier New', Courier, 'Lucida Sans Typewriter', 'Lucida Typewriter', monospace;font-size:11pt;color:#14FF0C;background-color:#172B4E;white-space:pre-wrap;width:800px;padding-left:8px;padding-bottom:6px;padding-top:6px;border:solid 1px #132441}
+.codeboxpre                 {white-space:pre;font-family:'Courier New', Courier, 'Lucida Sans Typewriter', 'Lucida Typewriter', monospace;font-size:8pt;color:#00FF00;background-color:#101010;padding-left:8px;padding-bottom:6px;border:solid 2px #2B5261}
+.textfile                   {font-family:'Courier New', Courier, 'Lucida Sans Typewriter', 'Lucida Typewriter', monospace;font-size:10pt;color:#FFFFFF;margin:0px}
+.quote                      {font-family:Verdana, Geneva, sans-serif;font-size:9pt;font-style:italic;padding-left:12px;color:#F3FF05}
+.quotedterminal             {font-family:'Courier New', Courier, 'Lucida Sans Typewriter', 'Lucida Typewriter', monospace;font-style:normal}
+.quotedli                   {font-family:Verdana, Geneva, sans-serif;font-size:9pt;font-style:italic;color:#F3FF05}
+.indentblock                {padding-left:12px}
+
+deletedli                   {font-family:Arial, 'Helvetica Neue', Helvetica, sans-serif}
+
+a:link                      {color:#FFFFFF}
+a:visited                   {color:#909090}
+a:active                    {color:#D0D0FF}
+a:hover                     {color:#FFD0D0}
+
+.codetitle                  {font-family:monospace;font-size:9pt;font-weight:bold;color:#FFFFFF}
+.code                       {font-family:monospace;font-size:9pt;color:#A0FFF0}
+.codesupplink               {font-family:monospace;font-size:9pt;font-style:italic;text-decoration:none}
+.quotetitle                 {font-family:Arial, 'Helvetica Neue', Helvetica, sans-serif;font-size:9pt;font-weight:bold}
+.hexhilight                 {background-color:#DADA80;color:#0000FF}
+.highlight                  {color:#FFFF00}
+.codehilite                 {color:#FFFF00}
+.tooldesc                   {color:#FFC000;font-size:10pt}
+.aAddr                      {color:#C0C0C0}
+.aOpc                       {color:#808080}
+.aInst                      {color:#00AA00}
+.aOpr                       {color:#FFFF57}
+.aCom                       {color:#D0D0D0;background-color:#800000}
+.aOp                        {color:#A8A8A8}
+.aBrak                      {color:#00A8A8}
+.asmboxpre                  {white-space:pre;font-family:'Courier New', Courier, 'Lucida Sans Typewriter', 'Lucida Typewriter', monospace;font-size:10pt;font-weight:bold;color:#C0C0C0;background-color:#000000;padding-left:6px;padding-right:6px;padding-bottom:4px;padding-top:4px;border:solid 2px #2B5261}
+.asmboxprevga               {white-space:pre;font-family:ibmvga9,'Lucida Console', 'Lucida Sans Typewriter', Monaco, 'Bitstream Vera Sans Mono', monospace;font-size:12pt;color:#C0C0C0;background-color:#000000;padding-left:6px;padding-bottom:2px;padding-right:6px;padding-top:4px;border:solid 1px #2B5261}
+.asmboxcontainer            {padding-left:12px}
+.hexdumppre                 {white-space:pre;font-family:'Courier New', Courier, 'Lucida Sans Typewriter', 'Lucida Typewriter', monospace;font-size:10pt;color:#9CE5FF}
+.codepre                    {white-space:pre;font-family:'Courier New', Courier, 'Lucida Sans Typewriter', 'Lucida Typewriter', monospace;font-size:10pt;color:#E0E0E0;background-color:#182848;padding-top:4px;padding-bottom:4px;padding-left:6px;padding-right:6px}
+.codeprebox                 {padding-left:12px}
+
+-->
+</style>
+
+<script language="javascript">
+
+function i2o(id){if (document.getElementById){return(document.getElementById(id));}else if (document.all){return(document.all[id]);}else if (document.layers){return(document.layers[id]);}}
+var strd0n = '';
+
+//IE6+ hack - IE doesn't properly handle li:hover and dropdowns are broken unless we convert between css:hover and javascript's mouseover/mouseout
+startList = function()
+{
+    //if browser is IE6 and above
+    if (document.all && document.getElementsByTagName)
+    {
+        var elems = document.getElementsByTagName("li");
+        for (i=0; elems && i<elems.length; ++i)
+        {
+            var node = elems[i];
+            if (-1 != node.className.indexOf("top"))
+            {
+                node.onmouseover=function() { this.className += " li_hover_hack"; }
+                node.onmouseout=function()  { this.className = this.className.replace(" li_hover_hack", ""); }
+            }
+        }
+    }
+
+    i2o('d0n').innerHTML = strd0n;
+
+} //startList()
+
+window.onload = startList;
+</script>
+
+<script language="javascript">
+function f3652()
+{
+
+return();
+}
+strd0n="" + f3652() + "";
+</script>
+
+
+</head>
+<body>
+<table cellspacing="0" cellpadding="0" class="dbxtable">
+<tbody><tr>
+    <td valign="bottom">
+        <table cellspacing="0" cellpadding="0">
+        <tbody><tr><td class="tdglyph"><img src="./BYTE_ _ Undocumented 64-bit PEB and TEB Structures_files/dul.png" width="9" height="16"></td></tr>
+        </tbody></table>
+    </td>
+    <td valign="bottom" width="100%">
+        <table cellspacing="0" cellpadding="0" width="100%">
+        <tbody><tr>
+            <td class="tdglyph" valign="bottom"><img src="./BYTE_ _ Undocumented 64-bit PEB and TEB Structures_files/dhm.png" width="9" height="16"></td>
+            <td class="tdglyph" valign="bottom"><img src="./BYTE_ _ Undocumented 64-bit PEB and TEB Structures_files/ob.png" width="9" height="16"></td>
+            <td class="tdglyph" valign="bottom"><a href="http://bytepointer.com/index.htm"><img border="0" src="./BYTE_ _ Undocumented 64-bit PEB and TEB Structures_files/but.png" width="9" height="16"></a></td>
+            <td class="tdglyph" valign="bottom"><img src="./BYTE_ _ Undocumented 64-bit PEB and TEB Structures_files/cb.png" width="9" height="16"></td>
+            <td valign="bottom" width="100%" class="tdglyphautohorzbard" style="background-position:left bottom">
+                <table align="center" cellspacing="0" cellpadding="0"><tbody><tr><td class="dbxtitle">&nbsp;&lt;-- <a href="http://bytepointer.com/resources/index.htm">Resources Index</a>&nbsp;/&nbsp;Undocumented 64-bit PEB and TEB Structures / <a target="_blank" href="http://bytepointer.com/resources/tebpeb64.h">download tebpeb64.h</a>&nbsp;</td></tr></tbody></table>
+            </td>
+            <td valign="bottom"><table cellspacing="0" cellpadding="0"><tbody><tr><td class="dbxtitle">1</td></tr></tbody></table></td>
+            <td class="tdglyph" valign="bottom"><img src="./BYTE_ _ Undocumented 64-bit PEB and TEB Structures_files/dhm.png" width="9" height="16"></td>
+            <td class="tdglyph" valign="bottom"><img src="./BYTE_ _ Undocumented 64-bit PEB and TEB Structures_files/ob.png" width="9" height="16"></td>
+            <td class="tdglyph" valign="bottom"><img src="./BYTE_ _ Undocumented 64-bit PEB and TEB Structures_files/au.png" width="9" height="16"></td>
+            <td class="tdglyph" valign="bottom"><img src="./BYTE_ _ Undocumented 64-bit PEB and TEB Structures_files/cb.png" width="9" height="16"></td>
+            <td class="tdglyph" valign="bottom"><img src="./BYTE_ _ Undocumented 64-bit PEB and TEB Structures_files/dhm.png" width="9" height="16"></td>
+        </tr>
+        </tbody></table>
+    </td>
+    <td valign="bottom">
+        <table cellspacing="0" cellpadding="0">
+        <tbody><tr><td class="tdglyph"><img src="./BYTE_ _ Undocumented 64-bit PEB and TEB Structures_files/dur.png" width="9" height="16"></td></tr>
+        </tbody></table>
+    </td>
+</tr>
+<tr>
+    <td valign="top" height="100%">
+        <table cellspacing="0" cellpadding="0" height="100%">
+        <tbody><tr><td width="100%" class="tdglyphautovertbard" style="background-position:left top"></td></tr>
+        </tbody></table>
+    </td>
+    <td valign="top">
+        <table cellspacing="0" cellpadding="0" width="100%">
+        <tbody><tr>
+            <td width="100%">
+<table cellspacing="0" cellpadding="0" width="100%"><tbody><tr><td class="dbxcontent" width="100%" valign="top">
+<table cellspacing="0" cellpadding="0"><tbody><tr><td width="100%"><div class="embedbody">
+<div class="header">Undocumented 64-bit PEB and TEB Structures / <a target="_blank" href="http://bytepointer.com/resources/tebpeb64.h">download tebpeb64.h</a></div><br><div class="textfilecontainer">
+<pre class="textfile">//
+// [TEB/PEB UNDER 64-BIT WINDOWS]
+// This file represents the 64-bit PEB and associated data structures for 64-bit Windows
+// This PEB is allegedly valid between XP thru [at least] Windows 8
+//
+// [REFERENCES]
+//      http://terminus.rewolf.pl/terminus/structures/ntdll/_PEB_x64.html
+//      http://terminus.rewolf.pl/terminus/structures/ntdll/_TEB64_x86.html
+//      https://github.com/giampaolo/psutil/commit/babd2b73538fcb6f3931f0ab6d9c100df6f37bcb     (RTL_USER_PROCESS_PARAMETERS)
+//      https://redplait.blogspot.com/2011/09/w8-64bit-teb-peb.html                             (TEB)
+//
+// [CHANGELIST]
+//    2018-05-02:   -now can be compiled alongside windows.h (without changes) or by defining WANT_ALL_WINDOWS_H_DEFINITIONS so this file can be used standalone
+//                  -this file may also be included alongside tebpeb32.h which can be found at http://bytepointer.com/resources/tebpeb32.h
+//                  -64-bit types no longer clash with the 32-bit ones; e.g. UNICODE_STRING64, RTL_USER_PROCESS_PARAMETERS64, PEB64 (same result whether 32 or 64-bit compiler is used)
+//                  -added more QWORD aliases (i.e. HANDLE64 and PTR64) so underlying types are clearer, however most PEB members remain generic QWORD placeholders for now
+//                  -fixed missing semicolon bug in UNICODE_STRING64
+//                  -added prliminary RTL_USER_PROCESS_PARAMETERS64 and TEB64 with offsets
+//                  -included byte offsets for PEB64
+//
+//    2017-08-25:   initial public release
+//
+
+
+//
+// base types
+//
+
+//always declare 64-bit types
+#ifdef _MSC_VER
+    //Visual C++
+    typedef unsigned __int64    QWORD;
+    typedef __int64             INT64;
+#else
+    //GCC
+    typedef unsigned long long  QWORD;
+    typedef long long           INT64;
+#endif
+typedef QWORD                   PTR64;
+typedef QWORD                   HANDLE64;
+
+//UNCOMMENT line below if you are not including windows.h
+//#define WANT_ALL_WINDOWS_H_DEFINITIONS
+#ifdef WANT_ALL_WINDOWS_H_DEFINITIONS
+
+//base types
+typedef unsigned char           BYTE;
+typedef char                    CHAR;
+typedef unsigned short          WORD;
+typedef short                   INT16;
+typedef unsigned long           DWORD;
+typedef long                    INT32;
+typedef unsigned __int64        QWORD;
+typedef __int64                 INT64;
+typedef void*                   HANDLE;
+typedef unsigned short          WCHAR;
+
+//base structures
+union LARGE_INTEGER
+{
+    struct
+    {
+        DWORD   LowPart;
+        INT32   HighPart;
+    } u;
+    INT64       QuadPart;
+};
+
+union ULARGE_INTEGER
+{
+    struct
+    {
+       DWORD LowPart;
+       DWORD HighPart;
+    } u;
+    QWORD       QuadPart;
+};
+
+#endif //#ifdef WANT_ALL_WINDOWS_H_DEFINITIONS
+
+struct UNICODE_STRING64
+{
+    union
+    {
+        struct
+        {
+            WORD Length;
+            WORD MaximumLength;
+        } u;
+        QWORD dummyalign;
+    };
+    QWORD Buffer;
+};
+
+typedef struct _CLIENT_ID64
+{
+     QWORD  ProcessId;
+     QWORD  ThreadId;
+} CLIENT_ID64;
+
+
+//NOTE: the members of this structure are not yet complete
+typedef struct _RTL_USER_PROCESS_PARAMETERS64
+{
+    BYTE                    Reserved1[16];                 //0x00
+    QWORD                   Reserved2[5];                  //0x10
+    UNICODE_STRING64        CurrentDirectoryPath;          //0x38
+    HANDLE64                CurrentDirectoryHandle;        //0x48
+    UNICODE_STRING64        DllPath;                       //0x50 
+    UNICODE_STRING64        ImagePathName;                 //0x60 
+    UNICODE_STRING64        CommandLine;                   //0x70 
+    PTR64                   Environment;                   //0x80
+} RTL_USER_PROCESS_PARAMETERS64;
+
+//
+// PEB64 structure - TODO: comb more through http://terminus.rewolf.pl/terminus/structures/ntdll/_PEB_x64.html and add OS delineations and Windows 10 updates
+//
+// The structure represented here is a work-in-progress as only members thru offset 0x320 are listed; the actual sizes per OS are:
+//    0x0358    XP/WS03
+//    0x0368    Vista
+//    0x037C    Windows 7
+//    0x0388    Windows 8
+//    0x07A0    Windows 10
+//
+struct PEB64
+{
+    union
+    {
+        struct
+        {
+            BYTE InheritedAddressSpace;                                 //0x000
+            BYTE ReadImageFileExecOptions;                              //0x001
+            BYTE BeingDebugged;                                         //0x002
+            BYTE _SYSTEM_DEPENDENT_01;                                  //0x003
+        } flags;
+        QWORD dummyalign;
+    } dword0;
+    QWORD                           Mutant;                             //0x0008
+    QWORD                           ImageBaseAddress;                   //0x0010
+    PTR64                           Ldr;                                //0x0018
+    PTR64                           ProcessParameters;                  //0x0020 / pointer to RTL_USER_PROCESS_PARAMETERS64
+    QWORD                           SubSystemData;                      //0x0028
+    QWORD                           ProcessHeap;                        //0x0030
+    QWORD                           FastPebLock;                        //0x0038
+    QWORD                           _SYSTEM_DEPENDENT_02;               //0x0040
+    QWORD                           _SYSTEM_DEPENDENT_03;               //0x0048
+    QWORD                           _SYSTEM_DEPENDENT_04;               //0x0050
+    union
+    {
+        QWORD                       KernelCallbackTable;                //0x0058
+        QWORD                       UserSharedInfoPtr;                  //0x0058
+    };
+    DWORD                           SystemReserved;                     //0x0060
+    DWORD                           _SYSTEM_DEPENDENT_05;               //0x0064
+    QWORD                           _SYSTEM_DEPENDENT_06;               //0x0068
+    QWORD                           TlsExpansionCounter;                //0x0070
+    QWORD                           TlsBitmap;                          //0x0078
+    DWORD                           TlsBitmapBits[2];                   //0x0080
+    QWORD                           ReadOnlySharedMemoryBase;           //0x0088
+    QWORD                           _SYSTEM_DEPENDENT_07;               //0x0090
+    QWORD                           ReadOnlyStaticServerData;           //0x0098
+    QWORD                           AnsiCodePageData;                   //0x00A0
+    QWORD                           OemCodePageData;                    //0x00A8
+    QWORD                           UnicodeCaseTableData;               //0x00B0
+    DWORD                           NumberOfProcessors;                 //0x00B8
+    union
+    {
+        DWORD                       NtGlobalFlag;                       //0x00BC
+        DWORD                       dummy02;                            //0x00BC
+    };
+    LARGE_INTEGER                   CriticalSectionTimeout;             //0x00C0
+    QWORD                           HeapSegmentReserve;                 //0x00C8
+    QWORD                           HeapSegmentCommit;                  //0x00D0
+    QWORD                           HeapDeCommitTotalFreeThreshold;     //0x00D8
+    QWORD                           HeapDeCommitFreeBlockThreshold;     //0x00E0
+    DWORD                           NumberOfHeaps;                      //0x00E8
+    DWORD                           MaximumNumberOfHeaps;               //0x00EC
+    QWORD                           ProcessHeaps;                       //0x00F0
+    QWORD                           GdiSharedHandleTable;               //0x00F8
+    QWORD                           ProcessStarterHelper;               //0x0100
+    QWORD                           GdiDCAttributeList;                 //0x0108
+    QWORD                           LoaderLock;                         //0x0110
+    DWORD                           OSMajorVersion;                     //0x0118
+    DWORD                           OSMinorVersion;                     //0x011C
+    WORD                            OSBuildNumber;                      //0x0120
+    WORD                            OSCSDVersion;                       //0x0122
+    DWORD                           OSPlatformId;                       //0x0124
+    DWORD                           ImageSubsystem;                     //0x0128
+    DWORD                           ImageSubsystemMajorVersion;         //0x012C
+    QWORD                           ImageSubsystemMinorVersion;         //0x0130
+    union
+    {
+        QWORD                       ImageProcessAffinityMask;           //0x0138
+        QWORD                       ActiveProcessAffinityMask;          //0x0138
+    };
+    QWORD                           GdiHandleBuffer[30];                //0x0140
+    QWORD                           PostProcessInitRoutine;             //0x0230
+    QWORD                           TlsExpansionBitmap;                 //0x0238
+    DWORD                           TlsExpansionBitmapBits[32];         //0x0240
+    QWORD                           SessionId;                          //0x02C0
+    ULARGE_INTEGER                  AppCompatFlags;                     //0x02C8
+    ULARGE_INTEGER                  AppCompatFlagsUser;                 //0x02D0
+    QWORD                           pShimData;                          //0x02D8
+    QWORD                           AppCompatInfo;                      //0x02E0
+    UNICODE_STRING64                CSDVersion;                         //0x02E8
+    QWORD                           ActivationContextData;              //0x02F8
+    QWORD                           ProcessAssemblyStorageMap;          //0x0300
+    QWORD                           SystemDefaultActivationContextData; //0x0308
+    QWORD                           SystemAssemblyStorageMap;           //0x0310
+    QWORD                           MinimumStackCommit;                 //0x0318
+
+}; //struct PEB64
+
+//
+// TEB64 structure - preliminary structure; the portion listed current at least as of Windows 8
+//
+struct TEB64
+{
+    BYTE                            NtTib[56];                          //0x0000 / NT_TIB64 structure
+    PTR64                           EnvironmentPointer;                 //0x0038
+    CLIENT_ID64                     ClientId;                           //0x0040
+    PTR64                           ActiveRpcHandle;                    //0x0050
+    PTR64                           ThreadLocalStoragePointer;          //0x0058
+    PTR64                           ProcessEnvironmentBlock;            //0x0060 / ptr to PEB64
+    DWORD                           LastErrorValue;                     //0x0068
+    DWORD                           CountOfOwnedCriticalSections;       //0x006C
+    PTR64                           CsrClientThread;                    //0x0070
+    PTR64                           Win32ThreadInfo;                    //0x0078
+    DWORD                           User32Reserved[26];                 //0x0080
+    DWORD                           UserReserved[6];                    //0x00E8
+    PTR64                           WOW32Reserved;                      //0x0100
+    DWORD                           CurrentLocale;                      //0x0108
+    DWORD                           FpSoftwareStatusRegister;           //0x010C
+    PTR64                           SystemReserved1[54];                //0x0110
+    DWORD                           ExceptionCode;                      //0x02C0
+    PTR64                           ActivationContextStackPointer;      //0x02C8
+
+}; //struct TEB64
+</pre>
+</div>
+</div></td></tr></tbody></table>
+</td><td width="0" valign="top"><div id="d0n"></div></td></tr></tbody></table>
+            </td>
+        </tr>
+        </tbody></table>
+    </td>
+    <td valign="top" height="100%">
+        <table cellspacing="0" cellpadding="0" height="100%">
+            <tbody><tr><td class="tdglyph"><img src="./BYTE_ _ Undocumented 64-bit PEB and TEB Structures_files/sau.png" width="9" height="16"></td></tr>
+            <tr><td class="tdglyph"><img src="./BYTE_ _ Undocumented 64-bit PEB and TEB Structures_files/scrollbut.png" width="9" height="16"></td></tr>
+            <tr><td valign="top" height="100%" class="tdglyphautovertscrollbg"></td></tr>
+            <tr><td class="tdglyph"><img src="./BYTE_ _ Undocumented 64-bit PEB and TEB Structures_files/sad.png" width="9" height="16"></td></tr>
+        </tbody></table>
+    </td>
+</tr>
+<tr>
+    <td valign="top">
+        <table cellspacing="0" cellpadding="0">
+        <tbody><tr><td class="tdglyph"><img src="./BYTE_ _ Undocumented 64-bit PEB and TEB Structures_files/dll.png" width="9" height="16"></td></tr>
+        </tbody></table>
+    </td>
+    <td valign="top">
+        <table cellspacing="0" cellpadding="0" width="100%">
+        <tbody><tr>
+            <td class="tdglyph" valign="top"><img src="./BYTE_ _ Undocumented 64-bit PEB and TEB Structures_files/dhm.png" width="9" height="16"></td>
+            <td valign="top" class="tdglyph"><img src="./BYTE_ _ Undocumented 64-bit PEB and TEB Structures_files/burst.png" width="9" height="16"></td>
+            <td class="tdglyph" valign="top"><img src="./BYTE_ _ Undocumented 64-bit PEB and TEB Structures_files/dhm.png" width="9" height="16"></td>
+            <td class="tdglyph" valign="top"><img src="./BYTE_ _ Undocumented 64-bit PEB and TEB Structures_files/dhm.png" width="9" height="16"></td>
+            <td class="tdglyph" valign="top"><img src="./BYTE_ _ Undocumented 64-bit PEB and TEB Structures_files/dhm.png" width="9" height="16"></td>
+            <td class="tdglyph" valign="top"><img src="./BYTE_ _ Undocumented 64-bit PEB and TEB Structures_files/dhm.png" width="9" height="16"></td>
+            <td valign="top"><table cellspacing="0" cellpadding="0"><tbody><tr><td class="dbxtitle">&nbsp;1:1&nbsp;</td></tr></tbody></table></td>
+            <td class="tdglyph" valign="top"><img src="./BYTE_ _ Undocumented 64-bit PEB and TEB Structures_files/dhm.png" width="9" height="16"></td>
+            <td class="tdglyph" valign="top"><img src="./BYTE_ _ Undocumented 64-bit PEB and TEB Structures_files/dhm.png" width="9" height="16"></td>
+            <td class="tdglyph" valign="top"><img src="./BYTE_ _ Undocumented 64-bit PEB and TEB Structures_files/dhm.png" width="9" height="16"></td>
+            <td class="tdglyph" valign="top"><img src="./BYTE_ _ Undocumented 64-bit PEB and TEB Structures_files/dhm.png" width="9" height="16"></td>
+            <td valign="top" class="tdglyph"><img src="./BYTE_ _ Undocumented 64-bit PEB and TEB Structures_files/sal.png" width="9" height="16"></td>
+            <td valign="top" class="tdglyph"><img src="./BYTE_ _ Undocumented 64-bit PEB and TEB Structures_files/scrollbut.png" width="9" height="16"></td>
+            <td valign="top" width="100%" class="tdglyphautohorzscrollbg" nowrap="nowrap"></td>
+            <td valign="top" class="tdglyph"><img src="./BYTE_ _ Undocumented 64-bit PEB and TEB Structures_files/sar.png" width="9" height="16"></td>
+            <td valign="top" class="tdglyph"><img src="./BYTE_ _ Undocumented 64-bit PEB and TEB Structures_files/scrollhm.png" width="9" height="16"></td>
+        </tr>
+        </tbody></table>
+    </td>
+    <td valign="top">
+        <table cellspacing="0" cellpadding="0">
+        <tbody><tr>
+            <td class="tdglyph"><img src="./BYTE_ _ Undocumented 64-bit PEB and TEB Structures_files/scrolllr.png" width="9" height="16"></td>
+        </tr>
+        </tbody></table>
+    </td>
+</tr>
+</tbody></table>
+
+
+</body></html>
