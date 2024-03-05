@@ -77,3 +77,34 @@ _Launch the WInDbg.exe, load in the MyApp.exe, directly execute the command `g` 
 ![task2_3](.\task2_3.bmp)
 
 **Finally, we can find the flag is `exception`.**
+
+## Task3:  WarBird
+
+**Target:** Find the function shown in the image below. The flag is covered by a green box in the image below.
+
+![task3_1](.\task3_1.bmp)
+
+**Solution:**
+
+_In the image, I find the "nt" which is a short name for "ntoskrnl.exe". so I need to find the function by kernel debugging._
+
+_Firstly, launch the "cmd" as a Administrator, and execute these commands (to enable local machine kernel-mode debugging):_
+
+```
+bcdedit /debug on
+bcdedit /dbgsettings local
+```
+
+_Restart the machine._
+
+_Run the WinDbg Preview as Administrator. In WinDbg click the File, "Attached to kernel"._
+
+_In the right plane click the **Local**, then click **OK**._
+
+   ![task3_2](.\task3_2.bmp)
+
+_Execute the command `x /D /f nt!WarBird*`_
+
+![task3_3](.\task3_3.bmp)
+
+**Finally, we get the flag `CCipherFeistel64`.**
