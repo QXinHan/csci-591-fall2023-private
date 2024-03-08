@@ -12,7 +12,7 @@
 
 **Target: ** Launch the Process Explorer as Administrator. Find the name of the parent process, covered by a green box in the image below.  
 
-![task1_1](.\task1_1.bmp)
+![task1_1](./task1_1.bmp)
 
 **Solution:**
 
