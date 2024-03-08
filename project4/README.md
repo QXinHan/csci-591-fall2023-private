@@ -108,3 +108,12 @@ _Execute the command `x /D /f nt!WarBird*`_
 ![task3_3](.\task3_3.bmp)
 
 **Finally, we get the flag `CCipherFeistel64`.**
+
+**Remember  to disable the kernel debug.**
+
+```
+bcdedit /debug off
+```
+
+**Then restart computer.**
+
