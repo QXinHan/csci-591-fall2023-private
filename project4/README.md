@@ -10,7 +10,7 @@
 
 ## Task1: Parent Process
 
-**Target: ** Launch the Process Explorer as Administrator. Find the name of the parent process, covered by a green box in the image below.  
+**Target:** Launch the Process Explorer as Administrator. Find the name of the parent process, covered by a green box in the image below.  
 
 ![task1_1](./task1_1.bmp)
 
@@ -32,7 +32,7 @@ _Launch the Process Explorer, scroll down to find flag._
 
 ## Task2: Crash Message
 
-**Target: **Find the flag covered by a green box in the image below. 
+**Target:** Find the flag covered by a green box in the image below. 
 
 ![task2_1](./task2_1.bmp)
 
