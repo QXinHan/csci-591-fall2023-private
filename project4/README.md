@@ -10,7 +10,7 @@
 
 ## Task1: Parent Process
 
-**Target: ** Launch the Process Explorer as Administrator. Find the name of the parent process, covered by a green box in the image below.  
+**Target:** Launch the Process Explorer as Administrator. Find the name of the parent process, covered by a green box in the image below.  
 
 ![task1_1](./task1_1.bmp)
 
@@ -18,15 +18,15 @@
 
 _Launch the WinDbg.exe as Administrator. In WinDbg.exe click **File**, `Launch executable`._
 
-![task1_2](.\task1_2.bmp)
+![task1_2](./task1_2.bmp)
 
 _Navigate to `C:\Windows\System32\notepad.exe`, and open it._
 
-![task1_3](.\task1_3.bmp)
+![task1_3](./task1_3.bmp)
 
 _Launch the Process Explorer, scroll down to find flag._
 
-![task1_4](.\task1_4.bmp)
+![task1_4](./task1_4.bmp)
 
 **Finally, the flag is `EngHost`.**
 
@@ -34,7 +34,7 @@ _Launch the Process Explorer, scroll down to find flag._
 
 **Target: **Find the flag covered by a green box in the image below. 
 
-![task2_1](.\task2_1.bmp)
+![task2_1](./task2_1.bmp)
 
 **Solution:**
 
@@ -70,11 +70,11 @@ In Notepad, save the file.
 
 _Then execute `cl/Zi MyApp.cpp` . We get some files._
 
-![task2_2](.\task2_2.bmp)
+![task2_2](./task2_2.bmp)
 
 _Launch the WInDbg.exe, load in the MyApp.exe, directly execute the command `g` in the command line._
 
-![task2_3](.\task2_3.bmp)
+![task2_3](./task2_3.bmp)
 
 **Finally, we can find the flag is `exception`.**
 
@@ -82,7 +82,7 @@ _Launch the WInDbg.exe, load in the MyApp.exe, directly execute the command `g` 
 
 **Target:** Find the function shown in the image below. The flag is covered by a green box in the image below.
 
-![task3_1](.\task3_1.bmp)
+![task3_1](./task3_1.bmp)
 
 **Solution:**
 
@@ -101,11 +101,11 @@ _Run the WinDbg Preview as Administrator. In WinDbg click the File, "Attached to
 
 _In the right plane click the **Local**, then click **OK**._
 
-   ![task3_2](.\task3_2.bmp)
+   ![task3_2](./task3_2.bmp)
 
 _Execute the command `x /D /f nt!WarBird*`_
 
-![task3_3](.\task3_3.bmp)
+![task3_3](./task3_3.bmp)
 
 **Finally, we get the flag `CCipherFeistel64`.**
 
