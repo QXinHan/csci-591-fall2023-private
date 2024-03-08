@@ -1,131 +1,44 @@
-#include"function.h"
+
+#include <SFML/Graphics.hpp>
+#include <iostream>
+using namespace std;
 
 /*
-* 
+
+// Create the image
+sf::Image image;
+image.create(width, height);
 */
-char pngSignature[] = { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A };
-char pngEndChunk[] = { 0x0,0x0,0x0,0x0,0x49,0x45,0x4e,0x44,0xae,0x42,0x60,0x82 };
-char testMalwarePath[] = "D:\\Downloads\\malware1";
-BinaryFileInfo* ClasifyMalware::get_FileInfo()
+
+struct FileDataInfo
 {
-	return &FileInfo;
-}
+	char* pFileDataByte;
+	int size;
+};
+FileDataInfo fileData;
+int* IntData = nullptr;
+char path[] = "D:\\gitspace\\csci-591-fall2023-private\\Assignmetn7\\assignment7-main\\";
 
-inline bool ClasifyMalware::Load_Binary_File(char* pFilename) {
-	if (pFilename == nullptr) {
-		cout << "Error: The file name is NULL!" << endl;
-		return false;
-	}
+char* numberMalware[] = {
+	(char*)"malware1",
+	(char*)"malware2",
+	(char*)"malware3",
+	(char*)"malware4",
+	(char*)"malware5",
+	(char*)"malware6",
+	(char*)"malware7",
+	(char*)"malware8",
+	(char*)"malware9",
+	(char*)"malware10",
+	(char*)"malware11",
+	(char*)"malware12",
+	(char*)"malware13",
+};
 
-	fopen_s(&pFile, (const char*)pFilename, "rb");
-
-	if (pFile == nullptr) {
-		cout << "Error: There is no such file!" << endl;
-		return false;
-	}
-
-	fseek(pFile, 0, SEEK_END);
-	FileInfo.sizeOfFile = ftell(pFile);
-	FileInfo.sizeOfFile = FileInfo.sizeOfFile;
-
-	if (FileInfo.sizeOfFile == 0) {
-		cout << "Error: The size of the file is zero!" << endl;
-		fclose(pFile);
-		return false;
-	}
-
-	fseek(pFile, 0, SEEK_SET);
-
-	FileInfo.pFileDataByte = (char*)malloc(FileInfo.sizeOfFile);
-
-	if (FileInfo.pFileDataByte == nullptr) {
-		cout << "Error: Fail to allocate the memory for the file data!" << endl;
-		fclose(pFile);
-		return false;
-	}
-
-
-	fread_s(FileInfo.pFileDataByte, FileInfo.sizeOfFile, FileInfo.sizeOfFile, 1, pFile);
-
-	if (!Convert_To_Int(FileInfo.pFileDataByte, FileInfo.sizeOfFile)) {
-		cout << "Error: Fail to convert byte data to int data" << endl;
-		fclose(pFile);
-		return false;
-	}
-
-	fclose(pFile);
-
-	cout << "Successfully load the file in memory!" << endl;
-
-	return true;
-
-}
-
-inline bool ClasifyMalware::Convert_To_Int(char* pFileData, int dataSize)
+int jud_File_Width(int fileSize)
 {
-	FileInfo.pFileDataInt = (int*)malloc(dataSize * 4);
-
-	if (FileInfo.pFileDataInt == nullptr) {
-		cout << "Error: Fail to allocate memory for int data!" << endl;
-		return false;
-	}
-
-	memset(FileInfo.pFileDataInt, 0, dataSize * 4);
-	for (int i = 0; i < FileInfo.sizeOfFile; i++) {
-		FileInfo.pFileDataInt[i] = (int)pFileData[i];
-	}
-
-	return true;
-}
-
-//这个函数用来转换得到的数据插入png的数据区，从而得到一个新的png图片
-inline bool ClasifyMalware::Convert_Binary_To_PNG(int* pFileData, char* pathTopng, int dataSize)
-{
-
-	return true;
-}
-
-char* ClasifyMalware::Get_Data_For_CRC(_CHUNK_DATA dataChunk)
-{
-	char* data = (char*)malloc(dataChunk.Length + 4);
-
-	if (data == nullptr) {
-		cout << "Error: Fail to allocate mamory foe data!" << endl;
-		return nullptr;
-	}
-
-	memcpy(data, (char*) & dataChunk + 4, 4);
-	memcpy(data + 4, dataChunk.pChunkData, dataChunk.Length);
-
-	return data;
-}
-
-inline uint32_t ClasifyMalware::Caculate_CRC32(_CHUNK_DATA dataChunk)
-{
-	char* data = Get_Data_For_CRC(dataChunk);
-	int length = dataChunk.Length + 4;
-	uint8_t i;
-	uint32_t crc = 0xffffffff;        // Initial value
-	while (length--)
-	{
-		crc ^= *data++;                // crc ^= *data; data++;
-		for (i = 0; i < 8; ++i)
-		{
-			if (crc & 1)
-				crc = (crc >> 1) ^ 0xEDB88320;// 0xEDB88320= reverse 0x04C11DB7
-			else
-				crc = (crc >> 1);
-		}
-	}
-	data -= dataChunk.Length + 4;
-	free(data);
-	return ~crc;
-}
-
-inline int ClasifyMalware::jud_File_Width(int fileSize)
-{
-	//这里的size是bytes为单位的，除以1024再比较
-	int temp = fileSize / 1024; //size单位转换成kb
+	
+	int temp = fileSize / 1024; 
 	if (temp <= 10) {
 		return 32;
 	}
@@ -153,133 +66,114 @@ inline int ClasifyMalware::jud_File_Width(int fileSize)
 	return 0;
 }
 
-inline int ClasifyMalware::jud_File_Height(int fileSize)
-{
-	float temp = (float)fileSize / 1024.0;
-	if (temp <= 10) {
-		return int(temp * 31.2);
+bool loadMalwareFile(char* pFilename) {
+	//free(fileData.pFileDataByte);
+	FILE* pFile = nullptr;
+	int sizeOfFile = 0;
+	char* pFileDataByte = nullptr;
+	if (pFilename == nullptr) {
+		cout << "Error: The file name is NULL!" << endl;
+		return false;
 	}
-	else if (temp <= 30) {
-		return int(156 + (temp - 10.0) * (468-156)/20.0);
-	}
-	else if (temp <= 60) {
-		return int(234 + (temp - 30.0)*(468-234)/40.0);
-	}
-	else if (temp <= 100) {
-		return int(234 + (temp - 60.0) * (390 - 234) / 40.0);
-	}
-	else if (temp <= 200) {
-		return int(260 + (temp - 100.0) * (520 - 260) / 100.0);
-	}
-	else if (temp <= 500) {
-		return int(390 + (temp - 200.0) * (976 - 390) / 300.0);
-	}
-	else if (temp <= 1000) {
-		return int(651 + (temp-500.0)  * (1302 - 651) / 500.0);
-	}
-	else {
-		return int(976 + (temp - 1000) * 1.1);
-	}
-	return 0;
-}
 
-void ClasifyMalware::Free()
-{
-	free(FileInfo.pFileDataByte);
-	free(FileInfo.pFileDataInt);
+	fopen_s(&pFile, (const char*)pFilename, "rb");
+
+	if (pFile == nullptr) {
+		cout << "Error: There is no such file!" << endl;
+		return false;
+	}
+
+	fseek(pFile, 0, SEEK_END);
+
+	sizeOfFile = ftell(pFile);
+
+	if (sizeOfFile == 0) {
+		cout << "Error: The size of the file is zero!" << endl;
+		fclose(pFile);
+		return false;
+	}
+
+	fseek(pFile, 0, SEEK_SET);
+
+	pFileDataByte = (char*)malloc(sizeOfFile);
+
+	if (pFileDataByte == nullptr) {
+		cout << "Error: Fail to allocate the memory for the file data!" << endl;
+		fclose(pFile);
+		return false;
+	}
+
+	fread_s(pFileDataByte, sizeOfFile, sizeOfFile, 1, pFile);
+
 	fclose(pFile);
+	fileData.size = sizeOfFile;
+	fileData.pFileDataByte = pFileDataByte;
+
+
+	return true;
+
+
 }
 
+int* converToInt(char* ByteData) {
+	IntData = (int*)malloc(fileData.size * 4);
+	for (int i = 0; i < fileData.size; i++) {
+		IntData[i] = (int)fileData.pFileDataByte[i];
+	}
+	return IntData;
+}
 
-int main(int argc, char* argv[])
+void convert(char* filepath, char* topath) {
+
+    //Create the image
+    sf::Image image;
+	int count = 0;
+	int width = 0;
+	int height = 0;
+	while (true) {
+
+		char filename[_MAX_PATH] = { 0 };
+		memcpy(filename, filepath, 74);
+		strcat_s(filename, numberMalware[count]);
+
+		char saveToFile[_MAX_PATH] = { 0 };
+		memcpy(saveToFile, filename, 74);
+		strcat_s(saveToFile, numberMalware[count]);
+		strcat_s(saveToFile, ".png");
+
+		if (!loadMalwareFile(filename)) {
+			cout << "Finish converting!" << endl;
+			break;
+		}
+
+		width = jud_File_Width(fileData.size);
+		height = fileData.size / width + (((width % width) == 0) ? 0 : 1);
+		char* fileDataInByte = fileData.pFileDataByte;
+
+		image.create(width, height);
+
+		for (int y = 0; y < height; y++) {
+			for (int x = 0; x < width; x++) {
+				// Set the pixel color based on the data from the file
+				int curByte = (int)fileDataInByte[x + y * width];
+				sf::Color color(curByte, curByte, curByte);
+				image.setPixel(x, y, color);
+			}
+		}
+
+		image.saveToFile(saveToFile);
+
+		count++;
+	}
+
+
+
+}
+
+int main()
 {
-	/*
-	if (argc == 1) {
-		cout << "Error: please pass a file name" << endl;
-		exit(1);
-	}
-	*/
-	
-
-	char* binaryFileName = testMalwarePath;
-
-
-	ClasifyMalware clasifyMalware;
-	BinaryFileInfo* FileInfo;
-	//Define the IHDR
-	_CHUNK_DATA png_Header_Chunk_Data, dataForIDAT;
-	_PNG_HEADER_CHUNK stableForIHDR;
-
-	//填充IHDR数据块
-	png_Header_Chunk_Data.Length = 13;
-	int a = 218103808;
-	png_Header_Chunk_Data.ChunkType = 0x52444849; // "IHDR"
-	png_Header_Chunk_Data.pChunkData = (char*)malloc(png_Header_Chunk_Data.Length);
-	if (png_Header_Chunk_Data.pChunkData == nullptr) {
-		cout << "Error: Fail to allocate memory for IHDR data" << endl;
-		exit(1);
-	}
-
-
-	clasifyMalware.Load_Binary_File(binaryFileName);
-	//获取头数据块的结构体，并且填充数据块。
-	FileInfo = clasifyMalware.get_FileInfo();
-	stableForIHDR.Width = clasifyMalware.jud_File_Width(FileInfo->sizeOfFile);
-	stableForIHDR.Height = clasifyMalware.jud_File_Height(FileInfo->sizeOfFile);
-	stableForIHDR.BitDepth = 0x1;
-	stableForIHDR.ColorType = 0x0;
-	stableForIHDR.FilterMethod = 0x0;
-	stableForIHDR.CompressionMethod = 0x0;
-	stableForIHDR.InterlaceMethod = 0x0;
-	// 把这些数据写入chunk data里面
-	memcpy(png_Header_Chunk_Data.pChunkData, &stableForIHDR, 0xd);
-
-	png_Header_Chunk_Data.CRC = clasifyMalware.Caculate_CRC32(png_Header_Chunk_Data);
-	//获取二进制文件的数据，填充IDAT数据块
-	dataForIDAT.ChunkType = 0x54414449;//"IDAT"
-	dataForIDAT.Length = FileInfo->sizeOfFile*4;//char to int
-	dataForIDAT.pChunkData = (char*)malloc(dataForIDAT.Length);
-	memcpy(dataForIDAT.pChunkData, FileInfo->pFileDataInt, dataForIDAT.Length);
-	dataForIDAT.CRC = clasifyMalware.Caculate_CRC32(dataForIDAT);
-
-	//把所有的数据都用一个字节流存起来
-	int ImageDatasize = 8 + 12 + png_Header_Chunk_Data.Length + 12 + dataForIDAT.Length + 12;
-	char* AllTheImageData = (char*)malloc(ImageDatasize);
-	//标志位
-	int offset = 0;
-	memcpy(AllTheImageData+offset, pngSignature, 8);
-	offset += 8;
-	//第一个Chunk
-	memcpy(AllTheImageData + offset, &a, 4);
-	_CHUNK_DATA* atemp = &png_Header_Chunk_Data;
-	offset += 4;
-	memcpy(AllTheImageData+offset,&png_Header_Chunk_Data.ChunkType , 4);
-	offset += 4;
-	memcpy(AllTheImageData + offset, png_Header_Chunk_Data.pChunkData, png_Header_Chunk_Data.Length);
-	offset += png_Header_Chunk_Data.Length;
-	memcpy(AllTheImageData + offset, &png_Header_Chunk_Data.CRC, 4);
-	offset += 4;
-	//第二个Chunk
-	memcpy(AllTheImageData + offset, &dataForIDAT, 8);
-	offset += 8;
-	memcpy(AllTheImageData + offset, dataForIDAT.pChunkData, dataForIDAT.Length);
-	offset += dataForIDAT.Length;
-	memcpy(AllTheImageData + offset, &dataForIDAT.CRC, 4);
-	offset += 4;
-	// 第三个chunk
-	memcpy(AllTheImageData + offset, pngEndChunk, 12);
-
-
-	FILE* malwarePNG = nullptr;
-	fopen_s(&malwarePNG, "D:\\Downloads\\malware1.png", "wb");
-	fwrite(AllTheImageData, ImageDatasize, 1, malwarePNG);
-	
-	clasifyMalware.Free();
-	fclose(malwarePNG);
-	free(png_Header_Chunk_Data.pChunkData);
-	free(dataForIDAT.pChunkData);
-
-	return 0;
+	convert(path, path);
+	//free(IntData);
+	free(fileData.pFileDataByte);
+    return 0;
 }
-
-
