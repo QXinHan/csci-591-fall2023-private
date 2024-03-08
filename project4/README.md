@@ -119,16 +119,76 @@ bcdedit /debug off
 
 ## Task4: Magic
 
+**Target:** find the flag covered in the green box.
 
+![task4_1](./task4_1.bmp)
 
-## Task5: 
+**Solution:**
 
-solution1:  `# ExGetExtensionTable imagebase sizeofimage` 获得调用ExGetExtensionTable的函数地址，然后反汇编这些函数
+_The word "Magic" is in the memory of nt. So I can use the command `s` to search memory for the string "Magic"._
 
-solution2：用`s`search memory，找一下。
+_command:_
 
 ```
-s -b fffff804`03c00000 L01047000 48 8b c4 48 89 58 08 48 89 68 10 48 89 70 18 48 89 78 20 41 56 48 83 ec 40 4c 8b f1 41 8b f9
+s -a imageBase imageSize "target word"
 ```
 
-solution3：
+_firstly, execute the commend `lm`._
+
+![task4_2](./task4_2.bmp)
+
+_Then click the `nt` to get the imagebase and size of nt.exe._
+
+![task4_3](./task4_3.bmp)
+
+_We can see the start address of nt and size of nt, so we execute the commend `s -a fffff80636800000 L?01047000 "Magic" `to search "Magic" in memory._
+
+![task4_4](./task4_4.bmp)
+
+**We can find the flag is `does`.**
+
+## Task5: Module
+
+**Target:** find the flag covered in the green box.
+
+![task5_1](./task5_1.bmp)
+
+**Solution1:**
+
+_To find the function which calls `SepBCryptExtensionHost`. And then dissemble them for comparison._
+
+![task5_2](./task5_2.bmp)
+
+_You can find that it is almost impossible to search through this way. Because there so many invocations!_
+
+_So we prefer to solution2._
+
+**Solution2:**
+
+_Directly search the hard code in memory. Use the commend as follows:_
+
+```
+s -b imagebase Lsize hard code
+```
+
+_After finding the imagebase and size of nt, then execute the following commend!_
+
+_The way to get the imagebse and size of nt I have mentioned in task4._
+
+```
+s -b fffff806`36800000 L01047000 48 8b c4 48 89 58 08 48 89 68 10 48 89 70 18 48 89 78 20 41 56 48 83 ec 40 4c 8b f1 41 8b f9
+```
+
+_After executing the commend, It searched three addresses._
+
+![task5_3](./task5_3.bmp)
+
+_Then I use commend `u + address` to get the functions by their addresses._
+
+![task5_4](./task5_4.bmp)
+
+_Execute the commend `uf + functionname ` to get the disassembly instructions. Then compare with the target function._
+
+![task5_5](./task5_5.bmp)
+
+**Finally We find the flag is `BCryptCreateHash`.**
